@@ -1,4 +1,4 @@
---- 
+---
 title: "NFL RB Fantasy Football Performance Predictions"
 author: "Tyler Farr"
 date: "8/26/2023"
@@ -13,9 +13,9 @@ site: bookdown::bookdown_site
 
 Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)
 
-* For non-rookie running backs, the **random forest model** performed the best
+-   For non-rookie running backs, the **random forest model** performed the best
 
-* For rookie running backs, the **linear regression model** performed the best. 
+-   For rookie running backs, the **linear regression model** performed the best.
 
 I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed.
 
@@ -43,7 +43,7 @@ Using the conversions above, I calculated a running back's total fantasy points 
 
 The data collected was from the 2012 to 2022 NFL seasons on running backs, mainly from Pro-Football-Reference for performance/game stats and OverTheCap/SporTrac for salary information. Please check the references section for the full list of sources.
 
-The 2023 season will be the test data set, a list of the top \~75 projected running backs for this season. The goal is to use only known data going into the season, as opposed to the data we would find out at the end of the season, so I can predict player fantasy points at the beginning of the season & draft my team based on this prediction. 
+The 2023 season will be the test data set, a list of the top \~75 projected running backs for this season. The goal is to use only known data going into the season, as opposed to the data we would find out at the end of the season, so I can predict player fantasy points at the beginning of the season & draft my team based on this prediction.
 
 ## Methodology/Data Prep
 
@@ -829,7 +829,7 @@ The final model explains 41.79% of the variation in half-PPR fantasy points give
 
 -   ImputedOddsRushYds *(1 if imputed, 0 if provided by BetMGM)*
 
-Interestingly, the variables selected between rookies and non-rookies are similar yet different. Looking at the diagnostic plots, the Q-Q plot is the biggest question mark; however a histogram of the residuals appears to be relatively Normal so I chose to let it pass the assumption. 
+Interestingly, the variables selected between rookies and non-rookies are similar yet different. Looking at the diagnostic plots, the Q-Q plot is the biggest question mark; however a histogram of the residuals appears to be relatively Normal so I chose to let it pass the assumption.
 
 ```{r warning = FALSE, message = FALSE}
 rookie_lm <- lm(Fantasy_Points_Half_PPR^0.5 ~ IA_RBCapNum + sqrt(PPR_ADP) + FirstYearOnTeam + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = train_rook_reg)
@@ -1014,7 +1014,7 @@ mse.r.df
 
 I put together my predictions for the 2023 NFL football season running backs. I compiled a list of this season's projected top 75-ish half-PPR running backs from FantasyPros.
 
-I decided to get the 2023 predictions from these models but re-train them on the full 2012-2022 dataset. Without changing things such as the number of components & assuming that would stay the same, the model can account for more variation year to year & player to player. Additionally, more data is always a good thing. 
+I decided to get the 2023 predictions from these models but re-train them on the full 2012-2022 dataset. Without changing things such as the number of components & assuming that would stay the same, the model can account for more variation year to year & player to player. Additionally, more data is always a good thing.
 
 I did not choose all the models that were produced. I chose only the models that had the lowest MSE's and were not super far apart from one another. For the non-rookies, I used the random forest, gradient boost, PCA with 5-components, and PLS with 2-components. For the rookies, I went with the multiple linear regression, PCA with 1 component, and PLS with 1 component.
 
@@ -1126,24 +1126,23 @@ Here are my draft picks + where I selected them from my fantasy draft on 8/16/20
 
 -   Tyler Allgeier - 104 (current ADP: 140.7)
 
+While doing my fantasy draft, my first-round pick was Bijan Robinson, the rookie, at pick 6 (given McCaffrey, Barkley, and Ekeler are all off the board). While this was slightly ahead of his ADP, I noticed that many top 10 NFL draft rookies in the past have done exceptionally well in their first season (Ezekiel Elliot (2016 - 1st), Saquon Barkley (2018 - 1st), Christian McCaffrey (2017 - 10th), and Leonard Fournette (2017 - 9th). There is a steep drop off in valuable running backs after round 4 or 5, so I wanted to definitely make sure I took a top tier running back, instead of a wide receiver or tight end.
 
-While doing my fantasy draft, my first-round pick was Bijan Robinson, the rookie, at pick 6 (given McCaffrey, Barkley, and Ekeler are all off the board). While this was slightly ahead of his ADP, I noticed that many top 10 NFL draft rookies in the past have done exceptionally well in their first season (Ezekiel Elliot (2016 - 1st), Saquon Barkley (2018 - 1st), Christian McCaffrey (2017 - 10th), and Leonard Fournette (2017 - 9th). There is a steep drop off in valuable running backs after round 4 or 5, so I wanted to definitely make sure I took a top tier running back, instead of a wide receiver or tight end. 
+I drafted Jonathan Taylor (Avg PPR 18.8) at position 24 (3rd round), which is a major steal for a player of his caliber, and the model projects him to finish the year as a top 10 running back. He has some risk with his contract dispute and the likelihood of getting traded to another team; however, I had to work with the information I had available when I was doing my draft.
 
-I drafted Jonathan Taylor (Avg PPR 18.8) at position 24 (3rd round), which is a major steal for a player of his caliber, and the model projects him to finish the year as a top 10 running back. He has some risk with his contract dispute and the likelihood of getting traded to another team; however, I had to work with the information I had available when I was doing my draft. 
+I also snagged Rachaad White and Cam Akers, two players in the top 30 projections for running back talent. While the model doesn't show a clear difference in these two players' performance vs. others, the given combination of opportunity and skill provides a perfect fit for a breakout candidate.
 
-I also snagged Rachaad White and Cam Akers, two players in the top 30 projections for running back talent. While the model doesn't show a clear difference in these two players' performance vs. others, the given combination of opportunity and skill provides a perfect fit for a breakout candidate. 
+Cam Akers had a very strong finish in his last five games of last season and is the clear starter in that Los Angeles backfield. Likewise, Rachaad White is the starter on an offense with questionable quarterback play, so they will need to rely on the running game and check down passes to their running backs frequently.
 
-Cam Akers had a very strong finish in his last five games of last season and is the clear starter in that Los Angeles backfield. Likewise, Rachaad White is the starter on an offense with questionable quarterback play, so they will need to rely on the running game and check down passes to their running backs frequently. 
+My fantasy league uses "keeper" players, where you can keep one player from your team on the year before. I chose to keep Rachaad White and I got immense value for his skill level at a very late pick.
 
-My fantasy league uses "keeper" players, where you can keep one player from your team on the year before. I chose to keep Rachaad White and I got immense value for his skill level at a very late pick. 
-
-Lastly - I took Tyler Allgeier, who is the backup running back in Atlanta (where Bijan Robinson plays). Allgeier was a 1,000-yard rusher last season and is very talented. While Robinson will likely take a lot of the playing time, Allgeier provides a safety net for me in case Robinson gets hurt. 
+Lastly - I took Tyler Allgeier, who is the backup running back in Atlanta (where Bijan Robinson plays). Allgeier was a 1,000-yard rusher last season and is very talented. While Robinson will likely take a lot of the playing time, Allgeier provides a safety net for me in case Robinson gets hurt.
 
 ### Limitations
 
-While making my draft picks, I used the model for guidance - but still relied on what I will call "industry knowledge" to guide my decisions. Certain players, like Derrick Henry, are at the near end of their careers. He's had many seasons with 300+ carries, a 2,000-yard season, and a hall of famer. However, the body can only handle so much impact, and at 29 years old, I think it's likely that he will taper off this year. 
+While making my draft picks, I used the model for guidance - but still relied on what I will call "industry knowledge" to guide my decisions. Certain players, like Derrick Henry, are at the near end of their careers. He's had many seasons with 300+ carries, a 2,000-yard season, and a hall of famer. However, the body can only handle so much impact, and at 29 years old, I think it's likely that he will taper off this year.
 
-The model ranked him as the eighth-best running back for non-rookies, but it's likely he won't play the full 18 games this season. While this is merely speculation, I personally think the model has ranked him too high. Adding another variable to account for possible injury could benefit and improve the model. 
+The model ranked him as the eighth-best running back for non-rookies, but it's likely he won't play the full 18 games this season. While this is merely speculation, I personally think the model has ranked him too high. Adding another variable to account for possible injury could benefit and improve the model.
 
 ### Future Improvements
 
