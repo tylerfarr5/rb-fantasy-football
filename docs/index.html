@@ -4,27 +4,25 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>YOUR TITLE HERE</title>
-  <meta name="description" content="YOUR TITLE HERE" />
-  <meta name="generator" content="bookdown 0.19 and GitBook 2.6.7" />
+  <title>NFL RB Fantasy Football Performance Predictions</title>
+  <meta name="description" content="NFL RB Fantasy Football Performance Predictions" />
+  <meta name="generator" content="bookdown 0.35 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="YOUR TITLE HERE" />
+  <meta property="og:title" content="NFL RB Fantasy Football Performance Predictions" />
   <meta property="og:type" content="book" />
-  
   
   
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="YOUR TITLE HERE" />
+  <meta name="twitter:title" content="NFL RB Fantasy Football Performance Predictions" />
   
   
   
 
-<meta name="author" content="YOUR NAME HERE" />
+<meta name="author" content="Tyler Farr" />
 
 
-<meta name="date" content="2020-08-10" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -32,8 +30,9 @@
   
   
 
-<link rel="next" href="the-pool-of-tears.html"/>
-<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -49,9 +48,80 @@
 
 
 
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
 
 
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
 
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
 
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -66,12 +136,38 @@
       <nav role="navigation">
 
 <ul class="summary">
-<li><a href="./">SHORT TITLE HERE</a></li>
+<li><a href="./">NFL RB Preds</a></li>
 
 <li class="divider"></li>
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Down the rabbit-hole</a></li>
-<li class="chapter" data-level="2" data-path="the-pool-of-tears.html"><a href="the-pool-of-tears.html"><i class="fa fa-check"></i><b>2</b> The pool of tears</a></li>
-<li class="chapter" data-level="3" data-path="a-caucus-race-and-a-long-tale.html"><a href="a-caucus-race-and-a-long-tale.html"><i class="fa fa-check"></i><b>3</b> A caucus-race and a long tale</a></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="#running-back---half-ppr-fantasy-points-prediction"><i class="fa fa-check"></i><b>1</b> Running Back - Half-PPR Fantasy Points Prediction</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="#introduction"><i class="fa fa-check"></i><b>1.1</b> Introduction</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="#methodologydata-prep"><i class="fa fa-check"></i><b>1.2</b> Methodology/Data Prep</a></li>
+<li class="chapter" data-level="1.3" data-path="index.html"><a href="#exploratory-data-analysis-eda"><i class="fa fa-check"></i><b>1.3</b> Exploratory Data Analysis (EDA)</a>
+<ul>
+<li class="chapter" data-level="1.3.1" data-path="index.html"><a href="#non-rookies"><i class="fa fa-check"></i><b>1.3.1</b> Non-Rookies</a></li>
+<li class="chapter" data-level="1.3.2" data-path="index.html"><a href="#rookies"><i class="fa fa-check"></i><b>1.3.2</b> Rookies</a></li>
+</ul></li>
+<li class="chapter" data-level="1.4" data-path="index.html"><a href="#modeling"><i class="fa fa-check"></i><b>1.4</b> Modeling</a>
+<ul>
+<li class="chapter" data-level="1.4.1" data-path="index.html"><a href="#non-rookies-1"><i class="fa fa-check"></i><b>1.4.1</b> Non-Rookies</a></li>
+<li class="chapter" data-level="1.4.2" data-path="index.html"><a href="#rookies-1"><i class="fa fa-check"></i><b>1.4.2</b> Rookies</a></li>
+</ul></li>
+<li class="chapter" data-level="1.5" data-path="index.html"><a href="#results"><i class="fa fa-check"></i><b>1.5</b> Results</a>
+<ul>
+<li class="chapter" data-level="1.5.1" data-path="index.html"><a href="#non-rookies-2"><i class="fa fa-check"></i><b>1.5.1</b> Non-Rookies</a></li>
+<li class="chapter" data-level="1.5.2" data-path="index.html"><a href="#rookies-2"><i class="fa fa-check"></i><b>1.5.2</b> Rookies</a></li>
+</ul></li>
+<li class="chapter" data-level="1.6" data-path="index.html"><a href="#recommendations"><i class="fa fa-check"></i><b>1.6</b> Recommendations</a>
+<ul>
+<li class="chapter" data-level="1.6.1" data-path="index.html"><a href="#non-rookies-3"><i class="fa fa-check"></i><b>1.6.1</b> Non-Rookies</a></li>
+<li class="chapter" data-level="1.6.2" data-path="index.html"><a href="#rookies-3"><i class="fa fa-check"></i><b>1.6.2</b> Rookies</a></li>
+<li class="chapter" data-level="1.6.3" data-path="index.html"><a href="#interpretation"><i class="fa fa-check"></i><b>1.6.3</b> Interpretation</a></li>
+<li class="chapter" data-level="1.6.4" data-path="index.html"><a href="#limitations"><i class="fa fa-check"></i><b>1.6.4</b> Limitations</a></li>
+<li class="chapter" data-level="1.6.5" data-path="index.html"><a href="#future-improvements"><i class="fa fa-check"></i><b>1.6.5</b> Future Improvements</a></li>
+</ul></li>
+<li class="chapter" data-level="1.7" data-path="index.html"><a href="#references"><i class="fa fa-check"></i><b>1.7</b> References</a></li>
+</ul></li>
 <li class="divider"></li>
 <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
 </ul>
@@ -83,7 +179,7 @@
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">YOUR TITLE HERE</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">NFL RB Fantasy Football Performance Predictions</a>
           </h1>
         </div>
 
@@ -92,13 +188,580 @@
 
             <section class="normal" id="section-">
 <div id="header">
-<h1 class="title">YOUR TITLE HERE</h1>
-<p class="author"><em>YOUR NAME HERE</em></p>
-<p class="date"><em>2020-08-10</em></p>
+<h1 class="title">NFL RB Fantasy Football Performance Predictions</h1>
+<p class="author"><em>Tyler Farr</em></p>
+<p class="date"><em>8/26/2023</em></p>
 </div>
-<div id="down-the-rabbit-hole" class="section level1">
-<h1><span class="header-section-number">Chapter 1</span> Down the rabbit-hole</h1>
+<div id="running-back---half-ppr-fantasy-points-prediction" class="section level1 hasAnchor" number="1">
+<h1><span class="header-section-number">Chapter 1</span> Running Back - Half-PPR Fantasy Points Prediction<a href="#running-back---half-ppr-fantasy-points-prediction" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="introduction" class="section level2 hasAnchor" number="1.1">
+<h2><span class="header-section-number">1.1</span> Introduction<a href="#introduction" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p><strong>Objective</strong></p>
+<p>Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)</p>
+<p>I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed.</p>
+<p><strong>Background</strong></p>
+<p>Fantasy football is game in which regular people create their own team of football players from the NFL. You compete in a league of usually 8-12 teams and every year, individuals draft players to their team based on who they expect to score the most points that season.</p>
+<p>Consequentially, I was looking for a way to improve my draft strategy so that I could find high-value running backs in late rounds of my fantasy football draft - as well as avoiding drafting ‘busts’. I will be using their fantasy football average draft position (ADP) as a reference point.</p>
+<p><em>How are fantasy points calculated for running backs?</em></p>
+<ul>
+<li><p><strong>Rushing Yards</strong> = 1 point per 10 yards</p></li>
+<li><p><strong>Receiving Yards</strong> = 1 point per 10 yards</p></li>
+<li><p><strong>Receptions</strong> = 0.5 points per 1 reception</p></li>
+<li><p><strong>Rushing/Receiving Touchdown</strong> = 6 points</p></li>
+<li><p><strong>Fumble</strong> = -2 points</p></li>
+</ul>
+<p>Using the conversions above, I was able to calculate a running back’s total fantasy points for the year.</p>
+<p><strong>Data</strong></p>
+<p>The data collected was from the 2012 to 2022 NFL seasons on running backs, mainly from Pro-Football-Reference for performance/game stats and OverTheCap/SporTrac for salary information. Please check the references section for the full list of sources.</p>
+<p>The 2023 season will be the test data set, which is a list of the top ~75 projected running backs for this season. The goal is to use only known data going in to the season, as opposed to the data we would find out at the end of the season, so I can predict player fantasy points at the beginning of the season &amp; draft my team based off this prediction.</p>
+</div>
+<div id="methodologydata-prep" class="section level2 hasAnchor" number="1.2">
+<h2><span class="header-section-number">1.2</span> Methodology/Data Prep<a href="#methodologydata-prep" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Here are some of the libraries that I used to explore this project.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(bookdown)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(car)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(corrplot)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">library</span>(Hmisc)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="fu">library</span>(plyr)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="fu">library</span>(nortest)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="fu">library</span>(pls)</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="fu">library</span>(tree)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="fu">library</span>(gbm)</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="fu">library</span>(neuralnet)</span></code></pre></div>
+<p>Next, we load in the dataset</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>full.rb.data <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">&quot;NFL Fantasy Football Predictive Model.xlsx&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>full.rb.data <span class="ot">&lt;-</span> full.rb.data[<span class="dv">1</span><span class="sc">:</span><span class="dv">79</span>]</span></code></pre></div>
+<p>A quick note about the data - I chose to compile many different data sources into one file, so I found it easier to compile everything in Microsoft Excel first and then read into R.</p>
+<p>Here are the minimum specifications on running backs each year:</p>
+<ul>
+<li><p>Minimum 40 attempts per season</p></li>
+<li><p>Minimum 4 games played in a season</p></li>
+<li><p>Minimum 75 rush yards per season</p></li>
+<li><p>At least one snap in a season to count towards “Years Pro”</p></li>
+<li><p>‘Rookie Contract Year’ means players in the final year of their rookie contract (or 5th year option) + did not resign early or get traded to another team by the start of the season</p></li>
+<li><p>Above specifications are voided if BetMGM published odds for player to have the most rushing yards - then they are automatically included in the dataset. This helped account for some big injuries.</p></li>
+</ul>
+<p><strong>Missing Data</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>For missing salary information from OverTheCap, I chose to replace it with salary information from SporTrac, the next closest source on salary information.</p></li>
+<li><p>Any player without a provided Madden rating was imputed with the lowest level in the game, which is 60.</p></li>
+<li><p>All players who did not have reported rushing odds at the beginning of their season were imputed with +1000 to the lowest reported odds player. For example, if the lowest player was +20000 to have the most rushing yards in a season, then every player who did not have reported odds for that specific season was +21000.</p></li>
+</ol>
+<p>As we can see in the histogram below, there was a clear right skew to the distribution of players and their odds</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">hist</span>(full.rb.data<span class="sc">$</span>Most_RushYds_Odds, <span class="at">main =</span> <span class="st">&quot;Histogram of Player Rush Yards Odds - Pre-Transformation&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;BetMGM Regular Season Most Rushing Yards Odds&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>After imputing, we see the histogram is still skewed, but more filled out now.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">hist</span>(full.rb.data<span class="sc">$</span>Most_RushYds_Odds, <span class="at">main =</span> <span class="st">&quot;Histogram of Player Rush Yards Odds - Post-Transformation&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;BetMGM Regular Season Most Rushing Yards Odds&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>To call attention to which rows were imputed on this odds variable, I also created an “Imputed Rush Yards Odds” variable that is a 1 if it was imputed, and 0 otherwise. This will be seen later in the model creation as an interaction term.</p>
+<p><strong>Rookies</strong></p>
+<p>Lastly, a lot of the variables in the data set were based off of the running backs previous season performance, so for rookies, since they didn’t have a previous NFL season, their values were imputed to 0. These rookies were split <strong>into their own dataset</strong> from the rest of the data as their 0’s in previous seasons would have skewed our results.</p>
+<p>We see that there are 161 rookies and 719 non-rookies through 2012 to 2022. We will filter them into their own dataset as such.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>rookies <span class="ot">&lt;-</span> full.rb.data[(full.rb.data<span class="sc">$</span>YearsPro <span class="sc">==</span> <span class="dv">1</span>),]</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>non.rookies <span class="ot">&lt;-</span> full.rb.data[(full.rb.data<span class="sc">$</span>YearsPro <span class="sc">!=</span> <span class="dv">1</span>),]</span></code></pre></div>
+<pre><code>##   Rookies Non.Rookies
+## 1     161         719</code></pre>
+<p><strong>Reading in the Test Data</strong></p>
+<p>Here, we read in the test data, which will be used for predicting 2023 players. This is as of 8/16/2023 - the day of my fantasy football draft. We go through and apply the same transformations as we did to the train set.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>ff2023 <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">&quot;2023 Predictions.xlsx&quot;</span>)</span></code></pre></div>
+<p>Imputing Rush Yds Odds for 2023 dataset (Max Odds is +15000)</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>ff2023 <span class="ot">&lt;-</span> ff2023 <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Most_RushYds_Odds =</span> <span class="fu">ifelse</span>(Year <span class="sc">==</span> <span class="dv">2023</span> <span class="sc">&amp;</span> <span class="fu">is.na</span>(Most_RushYds_Odds), <span class="dv">16000</span>, Most_RushYds_Odds))</span></code></pre></div>
+<p>Rookie/Non-Rookie Split for 2023 dataset</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>rookies2023 <span class="ot">&lt;-</span> ff2023[(ff2023<span class="sc">$</span>YearsPro <span class="sc">==</span> <span class="dv">1</span>),]</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>non.rookies2023 <span class="ot">&lt;-</span> ff2023[(ff2023<span class="sc">$</span>YearsPro <span class="sc">!=</span> <span class="dv">1</span>),]</span></code></pre></div>
+<p>Before exploring the data, I did a train/test split of the 2012-2022 data. I chose to take 80% of the data to train on, as I believe there is not as much variability year to year. I also made sure to stratify by year so there wasn’t any over/under representation from a specific year.</p>
+<p>There are 2 separate splits, one for non-rookies and one for rookies.</p>
+<ul>
+<li><em>Non-Rookies</em></li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>train.index <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(non.rookies<span class="sc">$</span>Year, <span class="at">p =</span> <span class="fl">0.80</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>train <span class="ot">&lt;-</span> non.rookies[train.index,]</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>test <span class="ot">&lt;-</span> non.rookies[<span class="sc">-</span>train.index,]</span></code></pre></div>
+<pre><code>## [1] &quot;Non-Rookie Train Data - Rows: 580&quot;</code></pre>
+<pre><code>## [1] &quot;Non-Rookie Test Data - Rows: 139&quot;</code></pre>
+<ul>
+<li><em>Rookies</em></li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>train.index2 <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(rookies<span class="sc">$</span>Year, <span class="at">p =</span> <span class="fl">0.80</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>train2 <span class="ot">&lt;-</span> rookies[train.index2,]</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>test2 <span class="ot">&lt;-</span> rookies[<span class="sc">-</span>train.index2,]</span></code></pre></div>
+<pre><code>## [1] &quot;Rookie Train Data - Rows: 134&quot;</code></pre>
+<pre><code>## [1] &quot;Rookie Test Data - Rows: 27&quot;</code></pre>
+</div>
+<div id="exploratory-data-analysis-eda" class="section level2 hasAnchor" number="1.3">
+<h2><span class="header-section-number">1.3</span> Exploratory Data Analysis (EDA)<a href="#exploratory-data-analysis-eda" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Here, we will dive a little deeper into some of the variable relationships in the training data before we build the model.</p>
+<div id="non-rookies" class="section level3 hasAnchor" number="1.3.1">
+<h3><span class="header-section-number">1.3.1</span> Non-Rookies<a href="#non-rookies" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We start by looking at a correlation matrix of variables in the model (not including previous season performance variables - that will be done separately). We see some obviously strong correlations, like CapNum and CashSpent, which are both salary information for players. There’s also a very strong relationship between a player’s Madden rating and their average draft position (ADP). This makes sense as highly rated players will be drafted higher.</p>
+<p>In terms of the target variable - Half PPR Fantasy Points - we see some variables with noticeable relationships, like RB salary information, where they were drafted in the NFL, fantasy average draft position, their Madden rating, and very slightly their height.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>corrs.int <span class="ot">&lt;-</span> train[<span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">12</span>,<span class="dv">13</span>,<span class="dv">15</span>,<span class="dv">18</span>,<span class="dv">19</span>, <span class="dv">60</span>,<span class="dv">61</span>,<span class="dv">64</span>,<span class="dv">65</span>,<span class="dv">73</span>,<span class="dv">77</span><span class="sc">:</span><span class="dv">79</span>)]</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">cor</span>(corrs.int)</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>corrplot<span class="sc">::</span><span class="fu">corrplot</span>(res,<span class="at">type =</span> <span class="st">&quot;upper&quot;</span>, <span class="at">order =</span> <span class="st">&quot;hclust&quot;</span>, <span class="at">tl.col =</span> <span class="st">&quot;black&quot;</span>, <span class="at">tl.srt =</span> <span class="dv">45</span>, <span class="at">title =</span> <span class="st">&quot;Correlation Matrix on NFL Running Back Data (2012-2022)&quot;</span>, <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>))</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>Next, the target variable was explored in relation to previous season data. I used a function I found online to flatten out the correlation matrix to pair relationships.</p>
+<p>There are some obvious strong correlations like previous targets &amp; previous receptions - or if an RB has a lot of red zone carries inside the 20, they are likely to have a lot of red zone carries inside the 10. I will mention this multicollinearity concern later in the report.</p>
+<p>Some of the previous-season variables that have a noticeable relationship with half-PPR fantasy points are rush yards per game, total rush touchdowns, attempts per game, rush yards per season, total first down rushes, receptions per game, and red zone carries inside the 20 and 10.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># ++++++++++++++++++++++++++++</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="co"># flattenCorrMatrix - flattens out correlations to 2x2</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="co"># ++++++++++++++++++++++++++++</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a><span class="co"># cormat : matrix of the correlation coefficients</span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>flattenCorrMatrix <span class="ot">&lt;-</span> <span class="cf">function</span>(cormat) {</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>  ut <span class="ot">&lt;-</span> <span class="fu">upper.tri</span>(cormat)</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>    <span class="at">row =</span> <span class="fu">rownames</span>(cormat)[<span class="fu">row</span>(cormat)[ut]],</span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>    <span class="at">column =</span> <span class="fu">rownames</span>(cormat)[<span class="fu">col</span>(cormat)[ut]],</span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>    <span class="at">cor  =</span>(cormat)[ut]</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a>    )</span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a>}</span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>prev.corrs <span class="ot">&lt;-</span> train[<span class="fu">c</span>(<span class="dv">20</span><span class="sc">:</span><span class="dv">57</span>, <span class="dv">79</span>)]</span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a>res2<span class="ot">&lt;-</span><span class="fu">rcorr</span>(<span class="fu">as.matrix</span>(prev.corrs))</span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a>previous.correlations <span class="ot">&lt;-</span> <span class="fu">flattenCorrMatrix</span>(res2<span class="sc">$</span>r)</span>
+<span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a></span>
+<span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">arrange</span>(previous.correlations, <span class="fu">desc</span>(cor)),<span class="dv">20</span>)</span></code></pre></div>
+<pre><code>##                           row                     column       cor
+## 1                     PrevTgt                    PrevRec 0.9890096
+## 2           Prev_Rec_Per_Game          Prev_Tgt_Per_Game 0.9847446
+## 3  Prev_RZ_RushAtt_Ins20_Perc Prev_RZ_RushAtt_Ins10_Perc 0.9760648
+## 4                    Prev_Att               Prev_RushYds 0.9738595
+## 5                Prev_Rec_Yds                Prev_1D_Rec 0.9644164
+## 6      Prev_Rush_Yds_Per_Game          Prev_Att_Per_Game 0.9604575
+## 7                Prev_RushYds               Prev_1D_Rush 0.9596675
+## 8                     PrevRec               Prev_Rec_Yds 0.9573421
+## 9                     PrevTgt               Prev_Rec_Yds 0.9539287
+## 10 Prev_RZ_RushAtt_Ins10_Perc  Prev_RZ_RushAtt_Ins5_Perc 0.9515645
+## 11          Prev_Rec_Per_Game       Prev_RecYds_Per_Game 0.9466384
+## 12                   Prev_Att               Prev_1D_Rush 0.9433204
+## 13       Prev_RecYds_Per_Game          Prev_Tgt_Per_Game 0.9421951
+## 14           Prev_Yds_Per_Rec           Prev_Yds_Per_Tgt 0.9405131
+## 15                    PrevRec                Prev_1D_Rec 0.9306556
+## 16                    PrevTgt                Prev_1D_Rec 0.9274192
+## 17                   Prev_Att Prev_RZ_RushAtt_Ins20_Perc 0.9201166
+## 18 Prev_RZ_RushAtt_Ins20_Perc  Prev_RZ_RushAtt_Ins5_Perc 0.9184891
+## 19               Prev_RushYds     Prev_Rush_Yds_Per_Game 0.9163199
+## 20               Prev_1D_Rush Prev_RZ_RushAtt_Ins20_Perc 0.8998130</code></pre>
+<p><strong>Visual Explorations</strong></p>
+<p>I was interested to see if a player’s first year on a new team would affect their fantasy performance. In the box plot below, we see there is a significant difference. In fact, a running back has significantly higher half-PPR fantasy points staying on the same team rather than their first year on a new team.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p>Next, “boom” or “bust” running backs are typically those with ‘big play ability.’ Those can be explored by 40+ yard runs in the previous season. The boxplots below show there is a statistically significant difference in the average half-PPR fantasy points in at least one of the groups. Upon further inspection, we see this significant difference lies in a difference between 0 and 2 and 0 and 3. There is a generally increasing trend in the boxplots as well, so it is likely that there is a relationship between the number of 40+ yard runs and a running back’s fantasy production.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> train, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(Prev40Runs), <span class="at">y =</span> Fantasy_Points_Half_PPR)) <span class="sc">+</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">fill =</span> <span class="st">&quot;orange&quot;</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span> </span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Prev 40+ Yard Runs&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Half-PPR Fantasy Points&quot;</span>, <span class="at">title =</span> <span class="st">&quot;Boxplot of Half-PPR Fantasy Points vs. Previous 40+ Yard Runs </span><span class="sc">\n</span><span class="st">(2012-2022)&quot;</span>) <span class="sc">+</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p>It is intuitive that there is a relationship between a player’s average fantasy draft position at the beginning of the season and their corresponding fantasy performance. Players taken first overall in a fantasy draft are 1.0, while those taken last are in 150-300 range.</p>
+<p>This scatterplot supports this theory, with a clear cone shape relationship. It appears that there is a lot more variability in for fantasy points for lower PPR average draft positions, while higher ADP’s tend to have smaller variability and lower total fantasy points. It was also confirmed statistically that the correlation does not equal 0 here.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<p>In the boxplot below, we see there is a clear, statistically significant difference in average half-PPR fantasy points between players who ran 1600+ yards in a season and those who did not. In fact, those who did run 1600+ yards are statistically greater than not in terms of average half-PPR fantasy points.</p>
+<p>I would like to point out the variability on players who ran for 1600+ yards in a previous season is much smaller than the variability of players who did not. Generally speaking, running backs who have 1600+ yards in a season usually average a high number of half-PPR fantasy points (~300 points), so I think this more importantly highlights that they do take a steep drop in production the following season as the box hovers around low 200 points.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p>Franchise tagged players arise out of contract disputes for running backs, where a team can keep a player on their roster for 1 year at a pre-determined salary while they have another year to figure out the contract. This boxplot examines players on a franchise tag for a year and how they perform vs players who are not on a franchise tag. Those not on a franchise tag perform significantly worse than those who are on a franchise tag in terms of average half-PPR fantasy points.</p>
+<p>It’s quite interesting to see how well franchise tagged players alone perform and how tight the variability is on the boxplot.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p>The Madden video game provides player rankings from 60-99, with 99 overall players being the best. Although the rankings can be subject to subjectivity, I find that they are generally solid representations of player ability. In the scatterplot below, it appears there is a positive relationship between a running back’s half-PPR fantasy points and their Madden rating. This was confirmed statistically to have a correlation different from 0.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<p>In this final boxplot, we are examining what round a running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. It appears there is an expected generally decreasing trend, as higher scoring players are taken in the higher rounds.</p>
+<p>Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 4,5, and 6 have a clear statistical difference between round 2. We also see undrafted free-agents (UDFA) have a statistical difference between rounds 1,2, and 3 players.</p>
+<p>While there are some exceptions of UDFA players who have been elite running backs (ie: Austin Ekeler), they are generally one of the lower performing half-PPR draft rounds, as expected.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+</div>
+<div id="rookies" class="section level3 hasAnchor" number="1.3.2">
+<h3><span class="header-section-number">1.3.2</span> Rookies<a href="#rookies" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Likewise for rookies, it is intuitive that there is a relationship between a player’s average fantasy draft position at the beginning of the season and their corresponding fantasy performance. Players taken first overall in a fantasy draft are 1.0, while those taken last are in 150-300 range.</p>
+<p>This scatterplot supports this theory, with a similar cone shape relationship. It appears that there is more variability in fantasy points for lower PPR average draft positions, while higher ADP’s tend to have smaller variability and lower total fantasy points. It was also confirmed statistically that the correlation does not equal 0 here.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<p>Once again looking at Madden rankings for rookies, the scatterplot below highlights a relatively positive relationship between a running back’s half-PPR fantasy points and their Madden rating. This was confirmed statistically to have a correlation different from 0.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<p>In this final boxplot, we are examining what round a rookie running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. It appears there is a stronger, decreasing trend, as rookies drafted in the early rounds (especially the first) have a much higher chance of coming in to a situation as the clear-cut starter, not having to compete for playing time.</p>
+<p>Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 2,3,4,5,6,and 7 have a clear statistical difference between round 1. We also see undrafted free-agents (UDFA) have a statistical difference between rounds 1 and 2 players. This makes sense because UDFA rookie running backs will get very little playing time compared to a first round back.</p>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+<ul>
+<li>All of the above tests were confirmed statistically by a Wilcox and Kruskal-Wallis non-parametric test, or Spearman’s correlation.</li>
+</ul>
+</div>
+</div>
+<div id="modeling" class="section level2 hasAnchor" number="1.4">
+<h2><span class="header-section-number">1.4</span> Modeling<a href="#modeling" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>As mentioned above, two separate data sets were created for the rookies and non-rookies. Therefore, they will have 2 separate models as well.</p>
+<p>A conservative alpha level of 0.025, instead of 0.05, was chosen for model significance testing since there are many observations in the data set and we need to adjust it to reflect a higher sample size.</p>
+<p>However, during the model selection process to filter out insignificant variables, an alpha level of 0.10 was chosen to include more leeway in evaluating the variables.</p>
+<p>To reduce multicollinearity, scaled values such as previous yards per attempt, 40+ yard rushes per attempt, or receiving yards per game were removed from the model. I chose to stick with unscaled values such as total season rushing yards, receiving yards, number of 40+ yard runs, etc.</p>
+<p>Additionally, NFL Draft position, previous season rushing yards, previous total receptions &amp; receiving yards, and previous red zone rushing attempts inside the 10 were all removed from the model for high multicollinearity.</p>
+<div id="non-rookies-1" class="section level3 hasAnchor" number="1.4.1">
+<h3><span class="header-section-number">1.4.1</span> Non-Rookies<a href="#non-rookies-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We start by looking at the non-rookies model. I created a subset of the train and test datasets of only the variables I want to look at.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>train_reg2 <span class="ot">&lt;-</span> train <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds))</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>test_reg2 <span class="ot">&lt;-</span> test <span class="sc">%&gt;%</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds))</span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a>test_y2 <span class="ot">&lt;-</span> test_reg2<span class="sc">$</span>Fantasy_Points_Half_PPR</span></code></pre></div>
+<p>Model selection resulted in the following recommended model:</p>
+<p>Fantasy_Points_Half_PPR ~ Madden_Rating + FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in + IA_OLCashSpent + YearsPro + Prev_1D_Rec + Prev_Lng_Rec + PrevGT1600 + FranchiseTag</p>
+<p>I did notice in outlier testing that Adrian Peterson’s 2014 season was a complete outlier. He was suspended and despite being a projected top fantasy running back - only played in 1 game. He was removed from the dataset for that season.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>train_reg2 <span class="ot">&lt;-</span> train_reg2[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">153</span>),]</span></code></pre></div>
+<div id="linear-regression" class="section level4 hasAnchor" number="1.4.1.1">
+<h4><span class="header-section-number">1.4.1.1</span> Linear Regression<a href="#linear-regression" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>For a linear regression model, I decided to make 2 models. One that focuses on producing the highest R-Squared, and one that produces the lowest AIC. Both resulted in different models.</p>
+<p>For the R-squared model, it was able to explain 37.7% of the variation in half-PPR fantasy points given the following variables:</p>
+<ul>
+<li><p>Madden Rating</p></li>
+<li><p>FirstYearOnTeam <em>(1 for yes, 0 for no)</em></p></li>
+<li><p>IA_RBCashSpent <em>(inflation adjusted salary incentives)</em></p></li>
+<li><p>PPR_ADP <em>(average draft position, PPR formats)</em></p></li>
+<li><p>PrevGT320 <em>(320 carries in previous season- 1 for yes, 0 for no)</em></p></li>
+<li><p>Height_in <em>(inches)</em></p></li>
+<li><p>Prev_1D_Rec <em>(total first down receptions in previous season)</em></p></li>
+<li><p>Prev_Lng_Rec <em>(longest reception in previous season)</em></p></li>
+<li><p>Most_RushYds_Odds <em>(BetMGM rushing yards odds before season starts)</em></p></li>
+<li><p>ImputedOddsRushYds <em>(1 if imputed, 0 if provided by BetMGM)</em></p></li>
+</ul>
+<p>We could argue from the diagnostic plots below that the model meets the assumptions of linear regression.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>final.mod3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> Madden_Rating <span class="sc">+</span> <span class="fu">I</span>(Madden_Rating<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> FirstYearOnTeam <span class="sc">+</span> IA_RBCashSpent <span class="sc">+</span> PPR_ADP <span class="sc">+</span> <span class="fu">I</span>(PPR_ADP<span class="sc">^</span><span class="dv">2</span>)<span class="sc">+</span> PrevGT320 <span class="sc">+</span> Height_in <span class="sc">+</span> Prev_1D_Rec <span class="sc">+</span> <span class="fu">I</span>(Prev_1D_Rec<span class="sc">^</span><span class="dv">2</span>)<span class="sc">+</span> Prev_Lng_Rec <span class="sc">+</span> Most_RushYds_Odds <span class="sc">+</span> ImputedOddsRushYds <span class="sc">+</span> Most_RushYds_Odds<span class="sc">:</span>ImputedOddsRushYds, <span class="at">data =</span> train_reg2)</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="co">#summary(final.mod3)</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="fu">plot</span>(final.mod3,<span class="dv">1</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">plot</span>(final.mod3,<span class="dv">2</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-42-2.png" width="672" /></p>
+<p>For the AIC focused model, we applied a Box Cox transformation to the Y variable, which is the only difference between the R-squared and AIC focused models. We could once again argue from the diagnostic plots below that the model meets the assumptions of linear regression.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a>final.mod4 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Fantasy_Points_Half_PPR<span class="sc">^</span><span class="fl">0.5</span> <span class="sc">~</span> Madden_Rating <span class="sc">+</span> FirstYearOnTeam <span class="sc">+</span> IA_RBCashSpent <span class="sc">+</span> PPR_ADP <span class="sc">+</span> <span class="fu">I</span>(PPR_ADP<span class="sc">^</span><span class="dv">2</span>)<span class="sc">+</span> PrevGT320 <span class="sc">+</span> Height_in <span class="sc">+</span> Prev_1D_Rec <span class="sc">+</span> Prev_Lng_Rec <span class="sc">+</span> Most_RushYds_Odds <span class="sc">+</span> ImputedOddsRushYds <span class="sc">+</span> Most_RushYds_Odds<span class="sc">:</span>ImputedOddsRushYds, <span class="at">data =</span> train_reg2)</span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="co">#AIC(final.mod4)</span></span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a><span class="co">#summary(final.mod4)</span></span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a><span class="fu">plot</span>(final.mod4,<span class="dv">1</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">plot</span>(final.mod4,<span class="dv">2</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-44-2.png" width="672" /></p>
+</div>
+<div id="principle-component-regression" class="section level4 hasAnchor" number="1.4.1.2">
+<h4><span class="header-section-number">1.4.1.2</span> Principle Component Regression<a href="#principle-component-regression" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Since I had many variables that were very similar/collinear to each other, aggregating them into principle components seemed to be effective for capturing the most amount of variance between different groups of variables.</p>
+<p>I chose to keep most of the variables in the model, only removing a limited number that aren’t relevant to the analysis, like the player’s name or the non-inflation adjusted salary information. From this, I split the dataset into a train and test matrix to proceed with PCA.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>train_reg3 <span class="ot">&lt;-</span> train <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent,Year))</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>test_reg3 <span class="ot">&lt;-</span> test <span class="sc">%&gt;%</span></span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent,Year))</span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a>train_reg3 <span class="ot">&lt;-</span> train_reg3[<span class="sc">-</span><span class="fu">c</span>(<span class="dv">153</span>),] <span class="co">#removes Adrian Peterson 2014 outlier year</span></span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a>train_x3 <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_reg3)[, <span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb26-10"><a href="#cb26-10" tabindex="-1"></a>train_y3 <span class="ot">&lt;-</span> train_reg3<span class="sc">$</span>Fantasy_Points_Half_PPR</span>
+<span id="cb26-11"><a href="#cb26-11" tabindex="-1"></a>test_x3 <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> test_reg3)[, <span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb26-12"><a href="#cb26-12" tabindex="-1"></a>test_y3 <span class="ot">&lt;-</span> test_reg3<span class="sc">$</span>Fantasy_Points_Half_PPR</span></code></pre></div>
+<p>From the results of the validation plot, it appears an “elbow” exists right around 1 or 5 components, so I will test both to see which will provide the lowest error.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>pcr.fit <span class="ot">&lt;-</span> <span class="fu">pcr</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_reg3, <span class="at">scale =</span> <span class="cn">TRUE</span>, <span class="at">validation =</span> <span class="st">&quot;CV&quot;</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a><span class="fu">validationplot</span>(pcr.fit, <span class="at">val.type =</span> <span class="st">&quot;MSEP&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-47-1.png" width="672" /></p>
+</div>
+<div id="partial-least-squares" class="section level4 hasAnchor" number="1.4.1.3">
+<h4><span class="header-section-number">1.4.1.3</span> Partial Least Squares<a href="#partial-least-squares" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Using the same training/test dataset from PCA, I will attempt to use Partial Least Squares method as well - another dimension reduction method since I have many variables that are correlated with each other.</p>
+<p>From the results of the validation plot, there is a clear “elbow” or dip at 2 components, so I will use that for the final PLS model.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>pls.fit <span class="ot">&lt;-</span> <span class="fu">plsr</span>(Fantasy_Points_Half_PPR <span class="sc">~</span>., <span class="at">data=</span> train_reg3, <span class="at">scale =</span> <span class="cn">TRUE</span>, <span class="at">validation=</span> <span class="st">&quot;CV&quot;</span>)</span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a><span class="fu">validationplot</span>(pls.fit, <span class="at">val.type =</span> <span class="st">&quot;MSEP&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-48-1.png" width="672" /></p>
+</div>
+<div id="decision-tree-random-forest" class="section level4 hasAnchor" number="1.4.1.4">
+<h4><span class="header-section-number">1.4.1.4</span> Decision Tree / Random Forest<a href="#decision-tree-random-forest" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>I started with a decision tree to see if pursuing more complicated machine learning models was even worth it.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="co">#Decision Tree</span></span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>tree.ff <span class="ot">&lt;-</span> <span class="fu">tree</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_reg3)</span></code></pre></div>
+<p>From here, I also created a random forest model. I set mtry to 21, as we typically use the number of predictors (63) divided by three.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="co">#Random Forest</span></span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>) <span class="co">#rows of data/3 = mtry</span></span>
+<span id="cb30-3"><a href="#cb30-3" tabindex="-1"></a>ff.rf <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_reg3, <span class="at">mtry =</span> <span class="dv">21</span>, <span class="at">importance =</span> <span class="cn">TRUE</span>) </span></code></pre></div>
+</div>
+<div id="gradient-boost" class="section level4 hasAnchor" number="1.4.1.5">
+<h4><span class="header-section-number">1.4.1.5</span> Gradient Boost<a href="#gradient-boost" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>A gradient boosted model is also tested here. The partial dependence plot of PPR_ADP shows that as ADP increases, half-PPR fantasy points is decreasing.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="co">#Gradient Boosted</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>ff.boost <span class="ot">&lt;-</span> <span class="fu">gbm</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_reg3, <span class="at">distribution =</span> <span class="st">&quot;gaussian&quot;</span>, <span class="at">n.trees =</span> <span class="dv">500</span>, <span class="at">interaction.depth =</span> <span class="dv">4</span>, <span class="at">shrinkage =</span> <span class="fl">0.01</span>, <span class="at">verbose =</span> F)</span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a><span class="fu">plot</span>(ff.boost, <span class="at">i =</span> <span class="st">&quot;PPR_ADP&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-51-1.png" width="672" /></p>
+</div>
+</div>
+<div id="rookies-1" class="section level3 hasAnchor" number="1.4.2">
+<h3><span class="header-section-number">1.4.2</span> Rookies<a href="#rookies-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>For rookies, a similar modeling process was conducted. I first had to subset the training dataset to not include any of the previous season variables, as rookies do not have any previous NFL season data since they were in college. Modeling them separately seemed like the most effective method.</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a>train_rook_reg <span class="ot">&lt;-</span> train2 <span class="sc">%&gt;%</span></span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(PlayerName, Year, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))</span>
+<span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" tabindex="-1"></a>test_rook_reg <span class="ot">&lt;-</span> test2 <span class="sc">%&gt;%</span></span>
+<span id="cb32-5"><a href="#cb32-5" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(PlayerName, Year, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))</span></code></pre></div>
+<p>Since there were less variables in the rookie model, I did not feel a need to perform model selection here.</p>
+<div id="linear-regression-1" class="section level4 hasAnchor" number="1.4.2.1">
+<h4><span class="header-section-number">1.4.2.1</span> Linear Regression<a href="#linear-regression-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>For a linear regression model, I did not have to decide between models this time because the assumptions of linear regression were not completely met without transforming the dependent variable.</p>
+<p>The final model is able to explain 41.79% of the variation in half-PPR fantasy points given the following variables:</p>
+<ul>
+<li><p>FirstYearOnTeam <em>(1 for yes, 0 for no)</em></p></li>
+<li><p>IA_RBCapNum <em>(inflation adjusted salary relative to team salary cap)</em></p></li>
+<li><p>PPR_ADP <em>(average draft position, PPR formats)</em></p></li>
+<li><p>Most_RushYds_Odds <em>(BetMGM rushing yards odds before season starts)</em></p></li>
+<li><p>ImputedOddsRushYds <em>(1 if imputed, 0 if provided by BetMGM)</em></p></li>
+</ul>
+<p>It’s interesting how the variables selected between rookies and non-rookies is similar, yet different. Looking at the diagnostic plots, the Q-Q plot is the biggest question mark, however a histogram of the residuals appears to be relatively Normal so I chose to let it pass the assumption.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a>rookie_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(Fantasy_Points_Half_PPR<span class="sc">^</span><span class="fl">0.5</span> <span class="sc">~</span> IA_RBCapNum <span class="sc">+</span> <span class="fu">sqrt</span>(PPR_ADP) <span class="sc">+</span> FirstYearOnTeam <span class="sc">+</span> Most_RushYds_Odds <span class="sc">+</span> ImputedOddsRushYds <span class="sc">+</span> Most_RushYds_Odds<span class="sc">:</span>ImputedOddsRushYds, <span class="at">data =</span> train_rook_reg)</span>
+<span id="cb33-2"><a href="#cb33-2" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" tabindex="-1"></a><span class="co">#AIC(rookie_lm)</span></span>
+<span id="cb33-4"><a href="#cb33-4" tabindex="-1"></a><span class="co">#summary(rookie_lm)</span></span>
+<span id="cb33-5"><a href="#cb33-5" tabindex="-1"></a><span class="fu">plot</span>(rookie_lm,<span class="dv">1</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-53-1.png" width="672" /></p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="fu">plot</span>(rookie_lm,<span class="dv">2</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-53-2.png" width="672" /></p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="fu">hist</span>(<span class="fu">resid</span>(rookie_lm))</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-53-3.png" width="672" /></p>
+</div>
+<div id="principal-component-analysis" class="section level4 hasAnchor" number="1.4.2.2">
+<h4><span class="header-section-number">1.4.2.2</span> Principal Component Analysis<a href="#principal-component-analysis" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Once again, a similar process was conducted for principle component analysis. We see the “elbow” in the validation plot occur at 1 component.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a>train_x_rook <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_rook_reg)[, <span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a>train_y_rook <span class="ot">&lt;-</span> train_rook_reg<span class="sc">$</span>Fantasy_Points_Half_PPR</span>
+<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a>test_x_rook <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> test_rook_reg)[, <span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb36-4"><a href="#cb36-4" tabindex="-1"></a>test_y_rook <span class="ot">&lt;-</span> test_rook_reg<span class="sc">$</span>Fantasy_Points_Half_PPR</span>
+<span id="cb36-5"><a href="#cb36-5" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" tabindex="-1"></a></span>
+<span id="cb36-7"><a href="#cb36-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb36-8"><a href="#cb36-8" tabindex="-1"></a>pcr.fit.rook <span class="ot">&lt;-</span> <span class="fu">pcr</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_rook_reg, <span class="at">scale =</span> <span class="cn">TRUE</span>, <span class="at">validation =</span> <span class="st">&quot;CV&quot;</span>)</span>
+<span id="cb36-9"><a href="#cb36-9" tabindex="-1"></a></span>
+<span id="cb36-10"><a href="#cb36-10" tabindex="-1"></a><span class="fu">validationplot</span>(pcr.fit.rook, <span class="at">val.type =</span> <span class="st">&quot;MSEP&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-55-1.png" width="672" /></p>
+</div>
+<div id="partial-least-squares-1" class="section level4 hasAnchor" number="1.4.2.3">
+<h4><span class="header-section-number">1.4.2.3</span> Partial Least Squares<a href="#partial-least-squares-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>For partial least squares, we see 1 component creates the “elbow” in the validation plot, so that is what will be used in our model.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>pls.fit.rook <span class="ot">&lt;-</span> <span class="fu">plsr</span>(Fantasy_Points_Half_PPR <span class="sc">~</span>., <span class="at">data=</span> train_rook_reg, <span class="at">scale =</span> <span class="cn">TRUE</span>, <span class="at">validation=</span> <span class="st">&quot;CV&quot;</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a><span class="fu">validationplot</span>(pls.fit.rook, <span class="at">val.type =</span> <span class="st">&quot;MSEP&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-56-1.png" width="672" /></p>
+</div>
+<div id="decision-tree-random-forest-1" class="section level4 hasAnchor" number="1.4.2.4">
+<h4><span class="header-section-number">1.4.2.4</span> Decision Tree / Random Forest<a href="#decision-tree-random-forest-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>For this method, I worked through a decision tree and random forest again. I set mtry to 6, as we typically use the number of predictors (20) divided by three, rounded down.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="co">#Decision Tree</span></span>
+<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" tabindex="-1"></a>tree.ff.rook <span class="ot">&lt;-</span> <span class="fu">tree</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_rook_reg)</span>
+<span id="cb38-5"><a href="#cb38-5" tabindex="-1"></a></span>
+<span id="cb38-6"><a href="#cb38-6" tabindex="-1"></a><span class="co">#Random Forest</span></span>
+<span id="cb38-7"><a href="#cb38-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>) <span class="co">#set mtry = p/3</span></span>
+<span id="cb38-8"><a href="#cb38-8" tabindex="-1"></a>ff.rf.rook <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_rook_reg, <span class="at">mtry =</span> <span class="dv">6</span>, <span class="at">importance =</span> <span class="cn">TRUE</span>) </span></code></pre></div>
+</div>
+<div id="gradient-boost-1" class="section level4 hasAnchor" number="1.4.2.5">
+<h4><span class="header-section-number">1.4.2.5</span> Gradient Boost<a href="#gradient-boost-1" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Lastly, we look at the gradient boosted model for the rookie analysis. I did include the partial dependence plot for PPR_ADP, as this is believed to be quite significant. We see that as ADP increases, the projected half-PPR fantasy points generally decreases.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a>ff.boost.rook <span class="ot">&lt;-</span> <span class="fu">gbm</span>(Fantasy_Points_Half_PPR <span class="sc">~</span> ., <span class="at">data =</span> train_rook_reg, <span class="at">distribution =</span> <span class="st">&quot;gaussian&quot;</span>, <span class="at">n.trees =</span> <span class="dv">1000</span>, <span class="at">interaction.depth =</span> <span class="dv">4</span>, <span class="at">shrinkage =</span> <span class="fl">0.01</span>, <span class="at">verbose =</span> F)</span>
+<span id="cb39-3"><a href="#cb39-3" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" tabindex="-1"></a><span class="fu">plot</span>(ff.boost.rook, <span class="at">i =</span> <span class="st">&quot;PPR_ADP&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-58-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="results" class="section level2 hasAnchor" number="1.5">
+<h2><span class="header-section-number">1.5</span> Results<a href="#results" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>I tested each model against Mean Square Error (MSE) to see which could provide the lowest MSE on the test dataset.</p>
+<div id="non-rookies-2" class="section level3 hasAnchor" number="1.5.1">
+<h3><span class="header-section-number">1.5.1</span> Non-Rookies<a href="#non-rookies-2" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Starting with the non-rookies, we see a table of each test and it’s mean square error. The random forest provides the lowest mean square error of ~ 4,000, which is essentially +/- 60-65 half-PPR fantasy points. However, the gradient boost, PCA, and PLS models were not very far behind.</p>
+<p>The PCA model with 1 component was not included since it had a higher MSE than the 5 component PCA model.</p>
+<pre><code>##     Model.Test.Non_Rookies      MSE
+## 1            Random Forest 4028.147
+## 2           Gradient Boost 4058.779
+## 3              PCA, 5 comp 4227.251
+## 4              PLS, 2 comp 4248.735
+## 5 Linear Regression (R-sq) 4330.715
+## 6  Linear Regression (AIC) 4761.269</code></pre>
+</div>
+<div id="rookies-2" class="section level3 hasAnchor" number="1.5.2">
+<h3><span class="header-section-number">1.5.2</span> Rookies<a href="#rookies-2" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The MSE table below provides a look into the rookie models. As we can, the multipl linear regression model performed the best, with an MSE of ~2960, or about +/- 55 half-PPR fantasy points. However, the PCA, PLS, and Random Forest models were not very far behind.</p>
+<p>I’m not totally sure why the Decision Tree model performed so poorly, but it will not be used in predictions</p>
+<pre><code>##   Model.Test.Rookies      MSE
+## 1  Linear Regression 2963.372
+## 2        PCA, 1 comp 3629.757
+## 3        PLS, 1 comp 3879.036
+## 4      Random Forest 3994.414
+## 5     Gradient Boost 4146.975
+## 6      Decision Tree 5337.597</code></pre>
+</div>
+</div>
+<div id="recommendations" class="section level2 hasAnchor" number="1.6">
+<h2><span class="header-section-number">1.6</span> Recommendations<a href="#recommendations" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Here, I put together my predictions for the 2023 NFL football season running backs. I compiled a list of the projected top 75-ish half-PPR running backs for this season from FantasyPros.</p>
+<p>I decided to get the 2023 predictions from these models, but re-train them on the full 2012-2022 dataset. Without changing things such as the number of components &amp; assuming that would stay the same, I think this way I can account for more variation year to year &amp; player to player. Additionally, more data is never a bad thing.</p>
+<p>I did not choose all models that were produced. I chose only the models that had the lowest MSE’s and were not super far apart from one another. For the non-rookies, I used the random forest, gradient boost, PCA with 5 components, and PLS with 2 components. For the rookies, I went with the multiple linear regression, PCA with 1 component, and PLS with 1 component.</p>
+<p>From here, I averaged out all of the 3 or 4 model predictions for each player to get a composite model prediction.</p>
+<p><em>As a side note, when I actually drafted my fantasy football team, I also used other data sources (FantasyPros, NumberFire, and DraftSharks) and averaged these projections with my model for the most wholesome projection possible.</em></p>
+<div id="non-rookies-3" class="section level3 hasAnchor" number="1.6.1">
+<h3><span class="header-section-number">1.6.1</span> Non-Rookies<a href="#non-rookies-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models.</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a>nr23 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(non.rookies2023, rf.pred, boost.pred, pcr.pred, pls.pred)</span>
+<span id="cb42-2"><a href="#cb42-2" tabindex="-1"></a>nr23<span class="sc">$</span>Projected_Half_PPR_Fantasy_Points <span class="ot">&lt;-</span> <span class="fu">rowMeans</span>(nr23[<span class="dv">72</span><span class="sc">:</span><span class="dv">75</span>])</span></code></pre></div>
+<pre><code>##             PlayerName PPR_ADP Projected_Half_PPR_Fantasy_Points
+## 1        Austin Ekeler     3.5                          220.4824
+## 2  Christian McCaffrey     2.5                          211.8905
+## 3       Saquon Barkley     7.8                          204.8360
+## 4          Josh Jacobs    19.8                          196.2825
+## 5           Nick Chubb    14.0                          191.5840
+## 6            Joe Mixon    35.3                          181.8366
+## 7         Tony Pollard    17.5                          180.1104
+## 8        Derrick Henry    16.0                          175.7822
+## 9      Jonathan Taylor    18.8                          173.5884
+## 10 Rhamondre Stevenson    28.3                          168.6104
+## 11        Najee Harris    29.8                          165.2331
+## 12        James Conner    64.5                          158.6746
+## 13      Travis Etienne    31.0                          156.4703
+## 14         Breece Hall    33.0                          151.9357
+## 15         Aaron Jones    38.8                          151.9118
+## 16  Kenneth Walker III    47.0                          148.6237
+## 17        Alvin Kamara    61.3                          145.6896
+## 18       Dameon Pierce    48.5                          143.7619
+## 19       D&#39;Andre Swift    68.8                          139.3428
+## 20       Miles Sanders    47.8                          138.2044
+## 21      Antonio Gibson   113.3                          136.7874
+## 22    Javonte Williams    75.8                          135.9761
+## 23    David Montgomery    87.0                          135.3064
+## 24       Rachaad White    65.3                          134.2722
+## 25         Dalvin Cook    67.3                          133.6503
+## 26           Cam Akers    63.5                          130.3920
+## 27           AJ Dillon    95.0                          127.5394
+## 28     Jerick McKinnon   123.5                          125.9709
+## 29        J.K. Dobbins    69.0                          123.8522
+## 30    Devin Singletary   152.8                          118.0801</code></pre>
+</div>
+<div id="rookies-3" class="section level3 hasAnchor" number="1.6.2">
+<h3><span class="header-section-number">1.6.2</span> Rookies<a href="#rookies-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Here is a snapshot of all 12 projected half-PPR fantasy rookie running backs.</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" tabindex="-1"></a>nr23.rook <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(rookies2023, mlr.pred, pcr.pred, pls.pred)</span>
+<span id="cb44-2"><a href="#cb44-2" tabindex="-1"></a>nr23.rook<span class="sc">$</span>Projected_Half_PPR_Fantasy_Points <span class="ot">&lt;-</span> <span class="fu">rowMeans</span>(nr23.rook[<span class="dv">72</span><span class="sc">:</span><span class="dv">74</span>])</span></code></pre></div>
+<pre><code>##           PlayerName PPR_ADP Projected_Half_PPR_Fantasy_Points
+## 1     Bijan Robinson     8.8                         199.64439
+## 2       Jahmyr Gibbs    35.5                         177.04863
+## 3    Zach Charbonnet   117.8                         123.09303
+## 4      De&#39;Von Achane   135.5                         114.53554
+## 5      Kendre Miller   161.5                         113.69193
+## 6        Tank Bigsby   185.3                         108.43209
+## 7    Roschon Johnson   196.7                         105.95218
+## 8       Tyjae Spears   216.0                         105.49591
+## 9  Israel Abanikanda   289.3                          96.95542
+## 10       Chase Brown   226.0                          93.65222
+## 11      Deuce Vaughn   208.5                          91.35095
+## 12    Kenny McIntosh   396.0                          71.33397</code></pre>
+</div>
+<div id="interpretation" class="section level3 hasAnchor" number="1.6.3">
+<h3><span class="header-section-number">1.6.3</span> Interpretation<a href="#interpretation" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>As I look over these projections, I am excited to see they are in line with what many of the top fantasy sites are ranking these running backs at. The goal of this analysis was to 1) correctly value running backs and 2) identify potential late round candidates that I could take in my draft.</p>
+<p>Here are my draft picks + where I selected them from my fantasy draft on 8/16/2023:</p>
+<ul>
+<li><p>Bijan Robinson - 6 (current ADP: 8.8)</p></li>
+<li><p>Jonathan Taylor - 24 (current ADP: 18.8)</p></li>
+<li><p>Cam Akers - 44 (current ADP: 63.5)</p></li>
+<li><p>Rachaad White - 117 (current ADP: 65.3)</p></li>
+<li><p>Tyler Allgeier - 104 (current ADP: 140.7)</p></li>
+</ul>
+<p>While doing my fantasy draft, my first round pick was Bijan Robinson, the rookie, at pick 6. This is given that McCaffrey, Barkley, and Ekeler are all off the board. While this was slightly ahead of his ADP, I noticed that many top 10 NFL draft rookies in the past have done extremely well their first season (Ezekiel Elliot (2016 - 1st), Saquon Barkley (2018 - 1st), Christian McCaffrey (2017 - 10th), and Leonard Fournette (2017 - 9th). This was my motivation behind taking Bijan Robinson, as well as the steep drop off in running back talent after this &amp; the fact that I didn’t want a wide receiver or tight end.</p>
+<p>I was also able to draft Jonathan Taylor (Avg PPR 18.8) at position 24, which is a major steal for a player of his caliber and the model projecting him to be a top 10 ranking in the 3rd round. He has some risk with his contract dispute and the likelihood that he get traded to another team, however, I had to work with the information I had available to me when I was doing my draft.</p>
+<p>I also snagged Rachaad White and Cam Akers, two players in the top 30 projections for running back talent. While the model doesn’t show a clear difference in these two players performance vs other players, I think the given combination of opportunity and skill provides a perfect fit for a breakout candidates.</p>
+<p>Cam Akers had a very strong finish in his last 5 games of last season and is the clear starter in that Los Angeles backfield. Likewise, Rachaad White is the starter and on an offense that has questionable quarterback play - so they will need to rely on the running game and check down passes to their running backs frequently.</p>
+<p>I was able to take Rachaad White in the 12th round, while his ADP was projected in the 7th. My league uses “keeper” players, where you can keep one player from your team on the year before. I chose to keep Rachaad White and I got immense value for his skill level at a very late pick.</p>
+<p>Lastly - I wanted to mention that I took Tyler Allgeier, who is the backup running back in Atlanta (where Bijan Robinson plays). Allgeier was a 1,000 yard rusher last season and is very talented. While Robinson will likely take a lot of the playing time, Allgeier provides a safety net for me in case Robinson gets hurt.</p>
+</div>
+<div id="limitations" class="section level3 hasAnchor" number="1.6.4">
+<h3><span class="header-section-number">1.6.4</span> Limitations<a href="#limitations" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>While making my draft picks, I used the model for guidance - but still relied on what I will call “industry knowledge” to guide my decisions. Certain players, like Derrick Henry, are on the near end of their career. He’s had many seasons with 300+ carries, a 2,000 yard season, and a hall of famer. However, the body can only handle so much impact, and at 29 years old, I think it’s likely that he will taper off this year.</p>
+<p>The model ranked him as the eight best running back for non-rookies, but I think it’s very likely he won’t play the full 18 games this season. While this is merely speculation, I personally think the model has ranked him too high. This is where adding another variable to account for possible injury could benefit and imrpove the model.</p>
+</div>
+<div id="future-improvements" class="section level3 hasAnchor" number="1.6.5">
+<h3><span class="header-section-number">1.6.5</span> Future Improvements<a href="#future-improvements" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>In regard to future improvements, I think I could account for more variables, such as injury concerns or more correctly defining a contract year. I could also rate players in terms of a level of risk that they are likely to get injured before the season starts. That would be crucial to model development.</p>
+<p>I’d also like to add a variable on how the player performed in their last 5 games of the previous season. A player like Cam Akers is a perfect example of why this variable could potentially be important. He started off the 2022 season by averaging less than 10 points per game for over the first 2/3 of the season. After the team’s bye week &amp; an invigorated spirit, Cam Akers finished within the top 15 for RB for 4 out of 6 weeks. He way out performed expectations and fantasy managers loved him. Accounting for this trend could potentially help identify certain impactful individuals.</p>
+<p>Lastly, a common belief in football is that running back’s decline in performance around 28 years old. I considered changing the age categorical variable ‘AgeGT28’ to whether or not the running back’s age is greater than or equal to 29. I think there is a better shot at capturing more of the variation and explanation of age into half-PPR fantasy points. As we can see in the graph below, it appears there’s a clearer drop off in points before and after the dotted red line, compared to the black. While this was not confirmed statistically yet, I think this could potentially provide more value to the model upon further analysis.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> train, <span class="fu">aes</span>(<span class="at">x =</span> Age, <span class="at">y =</span> Fantasy_Points_Half_PPR)) <span class="sc">+</span></span>
+<span id="cb46-2"><a href="#cb46-2" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb46-3"><a href="#cb46-3" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">28</span>) <span class="sc">+</span></span>
+<span id="cb46-4"><a href="#cb46-4" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">29</span>, <span class="at">linetype =</span><span class="st">&quot;longdash&quot;</span>, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
+<span id="cb46-5"><a href="#cb46-5" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Age&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Half-PPR Fantasy Points&quot;</span>) <span class="sc">+</span></span>
+<span id="cb46-6"><a href="#cb46-6" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb46-7"><a href="#cb46-7" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="at">x =</span> <span class="dv">30</span>, <span class="at">y =</span> <span class="dv">320</span>, <span class="at">label =</span> <span class="st">&quot;Age = 29&quot;</span>, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
+<span id="cb46-8"><a href="#cb46-8" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="at">x =</span> <span class="dv">27</span>, <span class="at">y =</span> <span class="dv">375</span>, <span class="at">label =</span> <span class="st">&quot;Age = 28&quot;</span>)</span></code></pre></div>
+<p><img src="bookdownproj_files/figure-html/unnamed-chunk-72-1.png" width="672" /></p>
+<p>At the time of this writing (Aug 2023), I plan to compare how the model performed against the 2023 season for running backs in February, just after the Super Bowl. Fingers crossed for a great fantasy season!</p>
+</div>
+</div>
+<div id="references" class="section level2 hasAnchor" number="1.7">
+<h2><span class="header-section-number">1.7</span> References<a href="#references" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<ul>
+<li><p><strong>Pro-Football-Reference:</strong> historical RB game stats, team stats</p>
+<ul>
+<li><p><a href="https://www.pro-football-reference.com/years/2022/rushing.htm" class="uri">https://www.pro-football-reference.com/years/2022/rushing.htm</a></p></li>
+<li><p><a href="https://www.pro-football-reference.com/years/2022/receiving.htm" class="uri">https://www.pro-football-reference.com/years/2022/receiving.htm</a></p></li>
+<li><p><a href="https://www.pro-football-reference.com/years/2022/index.htm" class="uri">https://www.pro-football-reference.com/years/2022/index.htm</a></p></li>
+<li><p><a href="https://www.pro-football-reference.com/years/2022/redzone-rushing.htm" class="uri">https://www.pro-football-reference.com/years/2022/redzone-rushing.htm</a></p></li>
+<li><p><a href="https://www.pro-football-reference.com/years/2023/preseason_odds.htm" class="uri">https://www.pro-football-reference.com/years/2023/preseason_odds.htm</a></p></li>
+</ul></li>
+<li><p><strong>NFL.com:</strong> 20+, 40+ yard runs</p>
+<ul>
+<li><a href="https://www.nfl.com/stats/player-stats/category/rushing/2022/reg/all/rushingyards/desc" class="uri">https://www.nfl.com/stats/player-stats/category/rushing/2022/reg/all/rushingyards/desc</a></li>
+</ul></li>
+<li><p><strong>OverTheCap:</strong> salaries</p>
+<ul>
+<li><p><a href="https://overthecap.com/position/running-back/2023" class="uri">https://overthecap.com/position/running-back/2023</a></p></li>
+<li><p><a href="https://overthecap.com/position/right-tackle/2023" class="uri">https://overthecap.com/position/right-tackle/2023</a></p></li>
+<li><p><a href="https://overthecap.com/position/right-guard/2023" class="uri">https://overthecap.com/position/right-guard/2023</a></p></li>
+<li><p><a href="https://overthecap.com/position/center/2023" class="uri">https://overthecap.com/position/center/2023</a></p></li>
+<li><p><a href="https://overthecap.com/position/left-tackle/2023" class="uri">https://overthecap.com/position/left-tackle/2023</a></p></li>
+<li><p><a href="https://overthecap.com/position/left-guard/2023" class="uri">https://overthecap.com/position/left-guard/2023</a></p></li>
+<li><p><a href="https://overthecap.com/position/quarterback/2023" class="uri">https://overthecap.com/position/quarterback/2023</a></p></li>
+</ul></li>
+<li><p><strong>SporTrac:</strong> contract and salary information</p></li>
+<li><p><strong>SportsOddsHistory.com:</strong> historical odds of running backs</p>
+<ul>
+<li><a href="https://www.sportsoddshistory.com/nfl-award/?y=2022&amp;sa=nfl&amp;a=rush&amp;o=r" class="uri">https://www.sportsoddshistory.com/nfl-award/?y=2022&amp;sa=nfl&amp;a=rush&amp;o=r</a></li>
+</ul></li>
+<li><p><strong>BetMGM:</strong> live odds of running backs Regular Season Stat Leaders - Most Regular Season Rushing Yards Odds</p></li>
+<li><p><strong>Madden:</strong> NFL video game historical Madden ratings</p>
+<ul>
+<li><a href="https://maddenratings.weebly.com/madden-nfl-24.html" class="uri">https://maddenratings.weebly.com/madden-nfl-24.html</a></li>
+</ul></li>
+<li><p><strong>FantasyPros:</strong> fantasy football historical player draft position</p>
+<ul>
+<li><a href="https://www.fantasypros.com/nfl/adp/ppr-overall.php?year=2023" class="uri">https://www.fantasypros.com/nfl/adp/ppr-overall.php?year=2023</a></li>
+</ul></li>
+<li><p><strong>Inflation Calculator:</strong> all salary cap numbers were adjusted for inflation to 2023 dollars</p>
+<ul>
+<li><a href="https://www.usinflationcalculator.com/" class="uri">https://www.usinflationcalculator.com/</a></li>
+</ul></li>
+</ul>
 
+</div>
 </div>
             </section>
 
@@ -106,11 +769,10 @@
         </div>
       </div>
 
-<a href="the-pool-of-tears.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
-<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
 <script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
 <script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
@@ -129,6 +791,7 @@ gitbook.start({
 "weibo": false,
 "instapaper": false,
 "vk": false,
+"whatsapp": false,
 "all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
 },
 "fontsettings": {
@@ -137,7 +800,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/YOUR GITHUB USERNAME/YOUR REPO NAME/edit/master/index.Rmd",
+"link": "https://github.com/tylerfarr5/rb-fantasy-football/edit/main/index.Rmd",
 "text": "Edit"
 },
 "history": {
@@ -145,10 +808,14 @@ gitbook.start({
 "text": null
 },
 "view": {
-"link": "https://github.com/YOUR GITHUB USERNAME/YOUR REPO NAME/blob/master/index.Rmd",
+"link": "https://github.com/tylerfarr5/rb-fantasy-football/blob/main/index.Rmd",
 "text": null
 },
 "download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
 "toc": {
 "collapse": "subsection"
 }
