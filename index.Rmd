@@ -5,7 +5,7 @@ date: "8/26/2023"
 site: bookdown::bookdown_site
 ---
 
-# Running Back - Half-PPR Fantasy Points Prediction
+# RB Fantasy Performance
 
 ## Introduction
 
@@ -608,9 +608,6 @@ ggplot(final.mod3, aes(x = fitted.values(final.mod3), y = resid(final.mod3))) +
 #testing equal variance b/c graph looks slightly heteroskedastic
 cor.test(abs(resid(final.mod3)), fitted.values(final.mod3), method = 'spearman', exact= F) #states we reject the null, so it's heteroskedastic
 
-###############################################################################
-########## Identifying Specific Variables for Pattern in Random Errors ############
-###################################################################################
 
 #ggplot(final.mod3, aes(x =Age, y = resid(final.mod3))) + 
  # geom_point() +
