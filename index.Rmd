@@ -13,13 +13,17 @@ site: bookdown::bookdown_site
 
 Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)
 
+* For non-rookie running backs, the **random forest model** performed the best
+
+* For rookie running backs, the **linear regression model** performed the best. 
+
 I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed.
 
 **Background**
 
-Fantasy football is game in which regular people create their own team of football players from the NFL. You compete in a league of usually 8-12 teams and every year, individuals draft players to their team based on who they expect to score the most points that season.
+Fantasy football is a game in which regular people create their team of football players from the NFL. You compete in a league of usually 8-12 teams, and every year, individuals draft players to their team based on who they expect to score the most points that season.
 
-Consequentially, I was looking for a way to improve my draft strategy so that I could find high-value running backs in late rounds of my fantasy football draft - as well as avoiding drafting 'busts'. I will be using their fantasy football average draft position (ADP) as a reference point.
+Consequentially, I was looking for a way to improve my draft strategy to find high-value running backs in the late rounds of my fantasy football draft - as well as avoid drafting 'busts.' I will use their fantasy football average draft position (ADP) as a reference point.
 
 *How are fantasy points calculated for running backs?*
 
@@ -33,13 +37,13 @@ Consequentially, I was looking for a way to improve my draft strategy so that I 
 
 -   **Fumble** = -2 points
 
-Using the conversions above, I was able to calculate a running back's total fantasy points for the year.
+Using the conversions above, I calculated a running back's total fantasy points for the year.
 
 **Data**
 
 The data collected was from the 2012 to 2022 NFL seasons on running backs, mainly from Pro-Football-Reference for performance/game stats and OverTheCap/SporTrac for salary information. Please check the references section for the full list of sources.
 
-The 2023 season will be the test data set, which is a list of the top \~75 projected running backs for this season. The goal is to use only known data going in to the season, as opposed to the data we would find out at the end of the season, so I can predict player fantasy points at the beginning of the season & draft my team based off this prediction. 
+The 2023 season will be the test data set, a list of the top \~75 projected running backs for this season. The goal is to use only known data going into the season, as opposed to the data we would find out at the end of the season, so I can predict player fantasy points at the beginning of the season & draft my team based on this prediction. 
 
 ## Methodology/Data Prep
 
@@ -269,9 +273,9 @@ Here, we will dive a little deeper into some of the variable relationships in th
 
 ### Non-Rookies
 
-We start by looking at a correlation matrix of variables in the model (not including previous season performance variables - that will be done separately). We see some obviously strong correlations, like CapNum and CashSpent, which are both salary information for players. There's also a very strong relationship between a player's Madden rating and their average draft position (ADP). This makes sense as highly rated players will be drafted higher.
+We start by looking at a correlation matrix of variables in the model (not including previous season performance variables - that will be done separately). We see some obviously strong correlations, like CapNum and CashSpent, which are both salary information for players. There's also a very strong relationship between a player's Madden rating and their average draft position (ADP). This relationship makes sense, as highly rated players will be drafted higher.
 
-In terms of the target variable - Half PPR Fantasy Points - we see some variables with noticeable relationships, like RB salary information, where they were drafted in the NFL, fantasy average draft position, their Madden rating, and very slightly their height.
+In terms of the target variable - Half PPR Fantasy Points - we see some variables with noticeable relationships, like RB salary information, where they were drafted in the NFL, fantasy average draft position, their Madden rating, and a slight relationship with height.
 
 ```{r warning= FALSE, message = FALSE}
 corrs.int <- train[c(4,12,13,15,18,19, 60,61,64,65,73,77:79)]
@@ -340,7 +344,7 @@ prev40aov <- aov(Fantasy_Points_Half_PPR ~ factor(Prev40Runs), data = train)
 TukeyHSD(prev40aov)
 ```
 
-Next, "boom" or "bust" running backs are typically those with 'big play ability.' Those can be explored by 40+ yard runs in the previous season. The boxplots below show there is a statistically significant difference in the average half-PPR fantasy points in at least one of the groups. Upon further inspection, we see this significant difference lies in a difference between 0 and 2 and 0 and 3. There is a generally increasing trend in the boxplots as well, so it is likely that there is a relationship between the number of 40+ yard runs and a running back's fantasy production.
+Next, "boom" or "bust" running backs are typically those with 'big-play ability.' Those can be explored by 40+ yard runs in the previous season. The boxplots below show a statistically significant difference in the average half-PPR fantasy points in at least one of the groups. Upon further inspection, we see a significant difference between 0 and 2 and 0 and 3. There is a generally increasing trend in the boxplots as well, so there is likely a relationship between the number of 40+ yard runs and a running back's fantasy production.
 
 ```{r warning= FALSE, message = FALSE}
 ggplot(data = train, aes(x = factor(Prev40Runs), y = Fantasy_Points_Half_PPR)) +
@@ -357,9 +361,9 @@ plot(lm(Fantasy_Points_Half_PPR ~ PPR_ADP, data = train),2)
 cor.test(train$PPR_ADP, train$Fantasy_Points_Half_PPR, method = 'spearman') #diff from 0
 ```
 
-It is intuitive that there is a relationship between a player's average fantasy draft position at the beginning of the season and their corresponding fantasy performance. Players taken first overall in a fantasy draft are 1.0, while those taken last are in 150-300 range.
+Intuitively, there is a relationship between a player's average fantasy draft position at the beginning of the season and their corresponding fantasy performance. Players taken first overall in a fantasy draft are 1.0, while those taken last are in 150-300 range.
 
-This scatterplot supports this theory, with a clear cone shape relationship. It appears that there is a lot more variability in for fantasy points for lower PPR average draft positions, while higher ADP's tend to have smaller variability and lower total fantasy points. It was also confirmed statistically that the correlation does not equal 0 here.
+This scatterplot supports this theory with a clear cone-shape relationship. There is a lot more variability in fantasy points for lower PPR average draft positions. In comparison, higher ADPs tend to have smaller variability and lower total fantasy points. I confirmed statistically that the correlation does not equal 0 here.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train, aes(x = PPR_ADP, y = Fantasy_Points_Half_PPR)) +
@@ -377,9 +381,9 @@ ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = PrevGT1600)) 
 wilcox.test(Fantasy_Points_Half_PPR ~ PrevGT1600, alternative = 'less', data = train) #sig lower for 0
 ```
 
-In the boxplot below, we see there is a clear, statistically significant difference in average half-PPR fantasy points between players who ran 1600+ yards in a season and those who did not. In fact, those who did run 1600+ yards are statistically greater than not in terms of average half-PPR fantasy points.
+In the boxplot below, we see a clear, statistically significant difference in average half-PPR fantasy points between players who ran 1600+ yards in a season and those who did not. In fact, those who did run 1600+ yards are statistically greater than not in terms of average half-PPR fantasy points.
 
-I would like to point out the variability on players who ran for 1600+ yards in a previous season is much smaller than the variability of players who did not. Generally speaking, running backs who have 1600+ yards in a season usually average a high number of half-PPR fantasy points (\~300 points), so I think this more importantly highlights that they do take a steep drop in production the following season as the box hovers around low 200 points.
+The variability on players who ran for 1600+ yards in a previous season is much smaller than that of players who did not. Generally speaking, running backs who have 1600+ yards in a season usually average a high number of half-PPR fantasy points (\~300 points), so I think this more importantly highlights that they do take a steep drop in production the following season as the box hovers around low 200 points.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train, aes(x = PrevGT1600, Fantasy_Points_Half_PPR)) +
@@ -398,9 +402,9 @@ ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = FranchiseTag)
 wilcox.test(Fantasy_Points_Half_PPR ~ FranchiseTag, alternative = 'less', data = train) #sig lower for 0
 ```
 
-Franchise tagged players arise out of contract disputes for running backs, where a team can keep a player on their roster for 1 year at a pre-determined salary while they have another year to figure out the contract. This boxplot examines players on a franchise tag for a year and how they perform vs players who are not on a franchise tag. Those not on a franchise tag perform significantly worse than those who are on a franchise tag in terms of average half-PPR fantasy points.
+Franchise-tagged players arise out of contract disputes for running backs, where a team can keep a player on their roster for one year at a pre-determined salary while they have another year to figure out the contract. This boxplot examines players on a franchise tag for a year and how they perform vs. players who are not on a franchise tag. Those not on a franchise tag perform significantly worse than those on a franchise tag in terms of average half-PPR fantasy points.
 
-It's quite interesting to see how well franchise tagged players alone perform and how tight the variability is on the boxplot.
+It's quite interesting to see how well franchise-tagged players alone perform and how tight the variability is on the boxplot.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train, aes(x = FranchiseTag, Fantasy_Points_Half_PPR)) + geom_boxplot(fill = "orange", alpha = 0.2) +
@@ -417,7 +421,7 @@ plot(lm(Fantasy_Points_Half_PPR ~ Madden_Rating, data = train),2)
 cor.test(train$Madden_Rating, train$Fantasy_Points_Half_PPR, method = 'spearman') #diff from 0
 ```
 
-The Madden video game provides player rankings from 60-99, with 99 overall players being the best. Although the rankings can be subject to subjectivity, I find that they are generally solid representations of player ability. In the scatterplot below, it appears there is a positive relationship between a running back's half-PPR fantasy points and their Madden rating. This was confirmed statistically to have a correlation different from 0.
+The Madden video game provides player rankings from 60-99, with 99 overall players being the best. Although the rankings can be subject to subjectivity, I find that they are generally solid representations of player ability. The scatterplot below shows a positive relationship between a running back's half-PPR fantasy points and their Madden rating. This was confirmed statistically to correlate differently from 0.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train, aes(x = Madden_Rating, Fantasy_Points_Half_PPR)) + geom_point(color = "orange") +
@@ -437,11 +441,11 @@ draftRoundaov <- aov(Fantasy_Points_Half_PPR ~ DraftRound, data = train)
 TukeyHSD(draftRoundaov)
 ```
 
-In this final boxplot, we are examining what round a running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. It appears there is an expected generally decreasing trend, as higher scoring players are taken in the higher rounds.
+In this final boxplot, we examine what round a running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. There is an expected generally decreasing trend as higher-scoring players are taken in the higher rounds.
 
-Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 4,5, and 6 have a clear statistical difference between round 2. We also see undrafted free-agents (UDFA) have a statistical difference between rounds 1,2, and 3 players.
+Statistically speaking, there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 4, 5 and 6 have a clear statistical difference from round 2. We also see undrafted free agents (UDFA) have a statistical difference from rounds 1, 2 and 3 players.
 
-While there are some exceptions of UDFA players who have been elite running backs (ie: Austin Ekeler), they are generally one of the lower performing half-PPR draft rounds, as expected.
+While there are some exceptions of UDFA players who have been elite running backs (ie: Austin Ekeler), they are generally one of the lower-performing half-PPR draft rounds, as expected.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train, aes(x = DraftRound, Fantasy_Points_Half_PPR)) + 
@@ -460,9 +464,9 @@ plot(lm(Fantasy_Points_Half_PPR ~ PPR_ADP, data = train2),2)
 cor.test(train2$PPR_ADP, train2$Fantasy_Points_Half_PPR, method = 'spearman') #diff from 0
 ```
 
-Likewise for rookies, it is intuitive that there is a relationship between a player's average fantasy draft position at the beginning of the season and their corresponding fantasy performance. Players taken first overall in a fantasy draft are 1.0, while those taken last are in 150-300 range.
+Likewise, for rookies, it is intuitive that there is a relationship between a player's average fantasy draft position at the beginning of the season and their corresponding fantasy performance. Players taken first overall in a fantasy draft are 1.0, while those taken last are in 150-300 range.
 
-This scatterplot supports this theory, with a similar cone shape relationship. It appears that there is more variability in fantasy points for lower PPR average draft positions, while higher ADP's tend to have smaller variability and lower total fantasy points. It was also confirmed statistically that the correlation does not equal 0 here.
+This scatterplot supports this theory with a similar cone-shaped relationship. There appears to be more variability in fantasy points for lower PPR average draft positions, while higher ADPs tend to have smaller variability and lower total fantasy points. I also confirmed statistically that the correlation does not equal 0 here.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train2, aes(x = PPR_ADP, y = Fantasy_Points_Half_PPR)) +
@@ -479,7 +483,7 @@ plot(lm(Fantasy_Points_Half_PPR ~ Madden_Rating, data = train2),2)
 cor.test(train2$Madden_Rating, train2$Fantasy_Points_Half_PPR, method = 'spearman') #diff from 0
 ```
 
-Once again looking at Madden rankings for rookies, the scatterplot below highlights a relatively positive relationship between a running back's half-PPR fantasy points and their Madden rating. This was confirmed statistically to have a correlation different from 0.
+Once again, looking at Madden rankings for rookies, the scatterplot below highlights a relatively positive relationship between a running back's half-PPR fantasy points and their Madden rating. This was confirmed statistically to correlate differently from 0.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train2, aes(x = Madden_Rating, Fantasy_Points_Half_PPR)) + geom_point(color = "blue") +
@@ -499,9 +503,9 @@ draftRoundaov <- aov(Fantasy_Points_Half_PPR ~ DraftRound, data = train2)
 TukeyHSD(draftRoundaov)
 ```
 
-In this final boxplot, we are examining what round a rookie running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. It appears there is a stronger, decreasing trend, as rookies drafted in the early rounds (especially the first) have a much higher chance of coming in to a situation as the clear-cut starter, not having to compete for playing time.
+In this final boxplot, we examine what round a rookie running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. There is a stronger, decreasing trend, as rookies drafted in the early rounds (especially the first) have a much higher chance of coming in to a situation as the clear-cut starter, not having to compete for playing time.
 
-Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 2,3,4,5,6,and 7 have a clear statistical difference between round 1. We also see undrafted free-agents (UDFA) have a statistical difference between rounds 1 and 2 players. This makes sense because UDFA rookie running backs will get very little playing time compared to a first round back.
+Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 2,3,4,5,6 and 7 have a clear statistical difference between round 1. We also see undrafted free agents (UDFA) have a statistical difference between rounds 1 and 2 players. This makes sense because UDFA rookie running backs will get very little playing time compared to first-round backs.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train2, aes(x = DraftRound, Fantasy_Points_Half_PPR)) + 
@@ -515,7 +519,7 @@ ggplot(data = train2, aes(x = DraftRound, Fantasy_Points_Half_PPR)) +
 
 ## Modeling
 
-As mentioned above, two separate data sets were created for the rookies and non-rookies. Therefore, they will have 2 separate models as well.
+As mentioned above, two separate data sets were created for the rookies and non-rookies. Therefore, they will have two different models as well.
 
 A conservative alpha level of 0.025, instead of 0.05, was chosen for model significance testing since there are many observations in the data set and we need to adjust it to reflect a higher sample size.
 
@@ -523,7 +527,7 @@ However, during the model selection process to filter out insignificant variable
 
 To reduce multicollinearity, scaled values such as previous yards per attempt, 40+ yard rushes per attempt, or receiving yards per game were removed from the model. I chose to stick with unscaled values such as total season rushing yards, receiving yards, number of 40+ yard runs, etc.
 
-Additionally, NFL Draft position, previous season rushing yards, previous total receptions & receiving yards, and previous red zone rushing attempts inside the 10 were all removed from the model for high multicollinearity.
+Additionally, NFL Draft position, previous season rushing yards, previous total receptions & receiving yards, and previous red zone rushing attempts inside the 10 yard line were all removed from the model for high multicollinearity.
 
 ```{r message = FALSE, warning = FALSE, echo = FALSE, include=FALSE}
 #removing any variables that won't be used in analysis, cap numbers have inflation adjusted alternatives
@@ -565,15 +569,15 @@ train_reg2 <- train_reg2[-c(153),]
 
 #### Linear Regression
 
-For a linear regression model, I decided to make 2 models. One that focuses on producing the highest R-Squared, and one that produces the lowest AIC. Both resulted in different models.
+For a linear regression model, I decided to make two models. One that focuses on producing the highest R-squared, and one that has the lowest AIC. Both resulted in different models.
 
-For the R-squared model, it was able to explain 37.7% of the variation in half-PPR fantasy points given the following variables:
+The R-squared model was able to explain 37.7% of the variation in half-PPR fantasy points given the following variables:
 
 -   Madden Rating
 
 -   FirstYearOnTeam *(1 for yes, 0 for no)*
 
--   IA_RBCashSpent *(inflation adjusted salary incentives)*
+-   IA_RBCashSpent *(inflation-adjusted salary incentives)*
 
 -   PPR_ADP *(average draft position, PPR formats)*
 
@@ -813,11 +817,11 @@ Since there were less variables in the rookie model, I did not feel a need to pe
 
 For a linear regression model, I did not have to decide between models this time because the assumptions of linear regression were not completely met without transforming the dependent variable.
 
-The final model is able to explain 41.79% of the variation in half-PPR fantasy points given the following variables:
+The final model explains 41.79% of the variation in half-PPR fantasy points given the following variables:
 
 -   FirstYearOnTeam *(1 for yes, 0 for no)*
 
--   IA_RBCapNum *(inflation adjusted salary relative to team salary cap)*
+-   IA_RBCapNum *(inflation-adjusted salary relative to team salary cap)*
 
 -   PPR_ADP *(average draft position, PPR formats)*
 
@@ -825,7 +829,7 @@ The final model is able to explain 41.79% of the variation in half-PPR fantasy p
 
 -   ImputedOddsRushYds *(1 if imputed, 0 if provided by BetMGM)*
 
-It's interesting how the variables selected between rookies and non-rookies is similar, yet different. Looking at the diagnostic plots, the Q-Q plot is the biggest question mark, however a histogram of the residuals appears to be relatively Normal so I chose to let it pass the assumption. 
+Interestingly, the variables selected between rookies and non-rookies are similar yet different. Looking at the diagnostic plots, the Q-Q plot is the biggest question mark; however a histogram of the residuals appears to be relatively Normal so I chose to let it pass the assumption. 
 
 ```{r warning = FALSE, message = FALSE}
 rookie_lm <- lm(Fantasy_Points_Half_PPR^0.5 ~ IA_RBCapNum + sqrt(PPR_ADP) + FirstYearOnTeam + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = train_rook_reg)
@@ -914,13 +918,13 @@ plot(ff.boost.rook, i = "PPR_ADP")
 
 ## Results
 
-I tested each model against Mean Square Error (MSE) to see which could provide the lowest MSE on the test dataset.
+After fitting the various models to the dataset, I compared the predictions with the test data and calculated the mean square error (MSE) to see which could provide the lowest MSE on the test dataset.
 
 ### Non-Rookies
 
 Starting with the non-rookies, we see a table of each test and it's mean square error. The random forest provides the lowest mean square error of \~ 4,000, which is essentially +/- 60-65 half-PPR fantasy points. However, the gradient boost, PCA, and PLS models were not very far behind.
 
-The PCA model with 1 component was not included since it had a higher MSE than the 5 component PCA model.
+The PCA model with 1 component was not included since it had a higher MSE than the 5-component PCA model.
 
 ```{r warning = FALSE, message= FALSE, include = FALSE}
 # Linear Regression
@@ -966,9 +970,9 @@ mse.nr.df
 
 ### Rookies
 
-The MSE table below provides a look into the rookie models. As we can, the multipl linear regression model performed the best, with an MSE of \~2960, or about +/- 55 half-PPR fantasy points. However, the PCA, PLS, and Random Forest models were not very far behind.
+The MSE table below provides a look into the rookie models. As we can, the multiple linear regression model performed the best, with an MSE of \~2960, or about +/- 55 half-PPR fantasy points. However, the PCA, PLS, and Random Forest models were not very far behind.
 
-I'm not totally sure why the Decision Tree model performed so poorly, but it will not be used in predictions
+I'm not totally sure why the Decision Tree model performed so poorly, but it will not be used in predictions.
 
 ```{r warning = FALSE, message= FALSE, include = FALSE}
 # Linear Regression
@@ -1008,15 +1012,15 @@ mse.r.df
 
 ## Recommendations
 
-Here, I put together my predictions for the 2023 NFL football season running backs. I compiled a list of the projected top 75-ish half-PPR running backs for this season from FantasyPros.
+I put together my predictions for the 2023 NFL football season running backs. I compiled a list of this season's projected top 75-ish half-PPR running backs from FantasyPros.
 
-I decided to get the 2023 predictions from these models, but re-train them on the full 2012-2022 dataset. Without changing things such as the number of components & assuming that would stay the same, I think this way I can account for more variation year to year & player to player. Additionally, more data is never a bad thing.
+I decided to get the 2023 predictions from these models but re-train them on the full 2012-2022 dataset. Without changing things such as the number of components & assuming that would stay the same, the model can account for more variation year to year & player to player. Additionally, more data is always a good thing. 
 
-I did not choose all models that were produced. I chose only the models that had the lowest MSE's and were not super far apart from one another. For the non-rookies, I used the random forest, gradient boost, PCA with 5 components, and PLS with 2 components. For the rookies, I went with the multiple linear regression, PCA with 1 component, and PLS with 1 component.
+I did not choose all the models that were produced. I chose only the models that had the lowest MSE's and were not super far apart from one another. For the non-rookies, I used the random forest, gradient boost, PCA with 5-components, and PLS with 2-components. For the rookies, I went with the multiple linear regression, PCA with 1 component, and PLS with 1 component.
 
-From here, I averaged out all of the 3 or 4 model predictions for each player to get a composite model prediction.
+From here, I averaged the 3 or 4 model predictions for each player to get a composite model prediction.
 
-*As a side note, when I actually drafted my fantasy football team, I also used other data sources (FantasyPros, NumberFire, and DraftSharks) and averaged these projections with my model for the most wholesome projection possible.*
+*As a side note, when I actually drafted my fantasy football team, I also averaged other data sources (FantasyPros, NumberFire, and DraftSharks) to build the most wholesome projection possible.*
 
 ### Non-Rookies
 
@@ -1108,7 +1112,7 @@ head(arrange(nr23.rook[c(2,71,75)], desc(Projected_Half_PPR_Fantasy_Points)),30)
 
 ### Interpretation
 
-As I look over these projections, I am excited to see they are in line with what many of the top fantasy sites are ranking these running backs at. The goal of this analysis was to 1) correctly value running backs and 2) identify potential late round candidates that I could take in my draft.
+As I look over these projections, I am excited to see they are in line with what many of the top fantasy sites are ranking these running backs at. The goal of this analysis was to 1) correctly value running backs and 2) identify potential late-round candidates that I could take in my draft.
 
 Here are my draft picks + where I selected them from my fantasy draft on 8/16/2023:
 
@@ -1123,31 +1127,31 @@ Here are my draft picks + where I selected them from my fantasy draft on 8/16/20
 -   Tyler Allgeier - 104 (current ADP: 140.7)
 
 
-While doing my fantasy draft, my first round pick was Bijan Robinson, the rookie, at pick 6. This is given that McCaffrey, Barkley, and Ekeler are all off the board. While this was slightly ahead of his ADP, I noticed that many top 10 NFL draft rookies in the past have done extremely well their first season (Ezekiel Elliot (2016 - 1st), Saquon Barkley (2018 - 1st), Christian McCaffrey (2017 - 10th), and Leonard Fournette (2017 - 9th). This was my motivation behind taking Bijan Robinson, as well as the steep drop off in running back talent after this & the fact that I didn't want a wide receiver or tight end. 
+While doing my fantasy draft, my first-round pick was Bijan Robinson, the rookie, at pick 6 (given McCaffrey, Barkley, and Ekeler are all off the board). While this was slightly ahead of his ADP, I noticed that many top 10 NFL draft rookies in the past have done exceptionally well in their first season (Ezekiel Elliot (2016 - 1st), Saquon Barkley (2018 - 1st), Christian McCaffrey (2017 - 10th), and Leonard Fournette (2017 - 9th). There is a steep drop off in valuable running backs after round 4 or 5, so I wanted to definitely make sure I took a top tier running back, instead of a wide receiver or tight end. 
 
-I was also able to draft Jonathan Taylor (Avg PPR 18.8) at position 24, which is a major steal for a player of his caliber and the model projecting him to be a top 10 ranking in the 3rd round. He has some risk with his contract dispute and the likelihood that he get traded to another team, however, I had to work with the information I had available to me when I was doing my draft. 
+I drafted Jonathan Taylor (Avg PPR 18.8) at position 24 (3rd round), which is a major steal for a player of his caliber, and the model projects him to finish the year as a top 10 running back. He has some risk with his contract dispute and the likelihood of getting traded to another team; however, I had to work with the information I had available when I was doing my draft. 
 
-I also snagged Rachaad White and Cam Akers, two players in the top 30 projections for running back talent. While the model doesn't show a clear difference in these two players performance vs other players, I think the given combination of opportunity and skill provides a perfect fit for a breakout candidates. 
+I also snagged Rachaad White and Cam Akers, two players in the top 30 projections for running back talent. While the model doesn't show a clear difference in these two players' performance vs. others, the given combination of opportunity and skill provides a perfect fit for a breakout candidate. 
 
-Cam Akers had a very strong finish in his last 5 games of last season and is the clear starter in that Los Angeles backfield. Likewise, Rachaad White is the starter and on an offense that has questionable quarterback play - so they will need to rely on the running game and check down passes to their running backs frequently. 
+Cam Akers had a very strong finish in his last five games of last season and is the clear starter in that Los Angeles backfield. Likewise, Rachaad White is the starter on an offense with questionable quarterback play, so they will need to rely on the running game and check down passes to their running backs frequently. 
 
-I was able to take Rachaad White in the 12th round, while his ADP was projected in the 7th. My league uses "keeper" players, where you can keep one player from your team on the year before. I chose to keep Rachaad White and I got immense value for his skill level at a very late pick. 
+My fantasy league uses "keeper" players, where you can keep one player from your team on the year before. I chose to keep Rachaad White and I got immense value for his skill level at a very late pick. 
 
-Lastly - I wanted to mention that I took Tyler Allgeier, who is the backup running back in Atlanta (where Bijan Robinson plays). Allgeier was a 1,000 yard rusher last season and is very talented. While Robinson will likely take a lot of the playing time, Allgeier provides a safety net for me in case Robinson gets hurt. 
+Lastly - I took Tyler Allgeier, who is the backup running back in Atlanta (where Bijan Robinson plays). Allgeier was a 1,000-yard rusher last season and is very talented. While Robinson will likely take a lot of the playing time, Allgeier provides a safety net for me in case Robinson gets hurt. 
 
 ### Limitations
 
-While making my draft picks, I used the model for guidance - but still relied on what I will call "industry knowledge" to guide my decisions. Certain players, like Derrick Henry, are on the near end of their career. He's had many seasons with 300+ carries, a 2,000 yard season, and a hall of famer. However, the body can only handle so much impact, and at 29 years old, I think it's likely that he will taper off this year. 
+While making my draft picks, I used the model for guidance - but still relied on what I will call "industry knowledge" to guide my decisions. Certain players, like Derrick Henry, are at the near end of their careers. He's had many seasons with 300+ carries, a 2,000-yard season, and a hall of famer. However, the body can only handle so much impact, and at 29 years old, I think it's likely that he will taper off this year. 
 
-The model ranked him as the eight best running back for non-rookies, but I think it's very likely he won't play the full 18 games this season. While this is merely speculation, I personally think the model has ranked him too high. This is where adding another variable to account for possible injury could benefit and imrpove the model. 
+The model ranked him as the eighth-best running back for non-rookies, but it's likely he won't play the full 18 games this season. While this is merely speculation, I personally think the model has ranked him too high. Adding another variable to account for possible injury could benefit and improve the model. 
 
 ### Future Improvements
 
-In regard to future improvements, I think I could account for more variables, such as injury concerns or more correctly defining a contract year. I could also rate players in terms of a level of risk that they are likely to get injured before the season starts. That would be crucial to model development.
+Regarding future improvements, I think I could account for more variables, such as injury concerns or more correctly defining a contract year. I could also rate players in terms of the level of risk that they are likely to get injured before the season starts. That would be crucial to model development.
 
-I'd also like to add a variable on how the player performed in their last 5 games of the previous season. A player like Cam Akers is a perfect example of why this variable could potentially be important. He started off the 2022 season by averaging less than 10 points per game for over the first 2/3 of the season. After the team's bye week & an invigorated spirit, Cam Akers finished within the top 15 for RB for 4 out of 6 weeks. He way out performed expectations and fantasy managers loved him. Accounting for this trend could potentially help identify certain impactful individuals.
+I'd also like to add a variable on how the player performed in their last five games of the previous season. A player like Cam Akers is a perfect example of why this variable could be important. He started off the 2022 season by averaging less than 10 points per game for over the first 2/3 of the season. After the team's bye week & an invigorated spirit, Cam Akers finished within the top 15 for RB for 4 out of 6 weeks. He way outperformed expectations, and fantasy managers loved him. Accounting for this trend could potentially help identify specific impactful individuals.
 
-Lastly, a common belief in football is that running back's decline in performance around 28 years old. I considered changing the age categorical variable 'AgeGT28' to whether or not the running back's age is greater than or equal to 29. I think there is a better shot at capturing more of the variation and explanation of age into half-PPR fantasy points. As we can see in the graph below, it appears there's a clearer drop off in points before and after the dotted red line, compared to the black. While this was not confirmed statistically yet, I think this could potentially provide more value to the model upon further analysis.
+Lastly, a common belief in football is that running backs decline in performance around 28 years old. I considered changing the age categorical variable 'AgeGT28' to whether or not the running back's age is greater than or equal to 29. There is a better shot at capturing more of the variation and explanation of age into half-PPR fantasy points. As we can see in the graph below, there is a clearer drop-off in points before and after the dotted red line, compared to the black. While this was not confirmed statistically yet, I think this could potentially provide more value to the model upon further analysis.
 
 ```{r warning = FALSE, message = FALSE}
 ggplot(data = train, aes(x = Age, y = Fantasy_Points_Half_PPR)) +
