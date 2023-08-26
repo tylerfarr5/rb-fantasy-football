@@ -1,4 +1,4 @@
-running-back---half-ppr-fantasy-points-prediction
+rb-fantasy-performance
 introduction
 methodologydata-prep
 exploratory-data-analysis-eda
