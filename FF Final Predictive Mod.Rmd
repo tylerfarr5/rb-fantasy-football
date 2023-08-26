@@ -1,0 +1,1279 @@
+---
+title: "Fantasy Football Predictive Model"
+author: "Tyler Farr"
+date: "2023-07-30"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+#### Read in relevant libraries for analysis
+
+```{r message = FALSE, warning = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(car)
+library(readxl)
+library(caret)
+library(glmnet)
+library(nortest)
+library(MASS)
+library(pls)
+library(tree)
+library(randomForest)
+library(gbm)
+library(BART)
+library(neuralnet)
+```
+
+# Load the data
+
+```{r message = FALSE, warning = FALSE}
+full.rb.data <- read_excel("NFL Fantasy Football Predictive Model.xlsx")
+full.rb.data <- full.rb.data[1:79]
+```
+
+# Explore Data
+
+```{r message = FALSE, warning = FALSE}
+str(full.rb.data)
+summary(full.rb.data)
+sum(is.na(full.rb.data))
+View(full.rb.data)
+View(full.rb.data[51:79])
+```
+
+Checking correlations on numeric variables - cor, cor.test
+
+```{r message = FALSE, warning = FALSE}
+cor(full.rb.data[, c(4:13,15:62,66,67,71:73)])
+```
+
+# Clean Data, if needed (impute NA's, remove rookies, format)
+
+```{r message = FALSE, warning = FALSE}
+full.rb.data$Year <- as.factor(full.rb.data$Year)
+full.rb.data$Team <- as.factor(full.rb.data$Team)
+full.rb.data$FirstYearOnTeam <- as.factor(full.rb.data$FirstYearOnTeam)
+full.rb.data$AgeGT28 <- as.factor(full.rb.data$AgeGT28)
+full.rb.data$PrevGT1600 <- as.factor(full.rb.data$PrevGT1600)
+full.rb.data$PrevGT320 <- as.factor(full.rb.data$PrevGT320)
+full.rb.data$DraftRound <- as.factor(full.rb.data$DraftRound)
+full.rb.data$RookieContractYear <- as.factor(full.rb.data$RookieContractYear)
+full.rb.data$FranchiseTag <- as.factor(full.rb.data$FranchiseTag)
+```
+
+Imputing missing values for player most rushing yards
+
+```{r message = FALSE, warning = FALSE}
+hist(full.rb.data$Most_RushYds_Odds)
+
+#Looking at Max Value, will add 1000 to max value to symbolize everyone who was NA by year
+summary(full.rb.data[full.rb.data$Year ==2012,]$Most_RushYds_Odds) #Max 8000
+summary(full.rb.data[full.rb.data$Year ==2013,]$Most_RushYds_Odds) #Max 6600
+summary(full.rb.data[full.rb.data$Year ==2014,]$Most_RushYds_Odds) #Max 8000
+summary(full.rb.data[full.rb.data$Year ==2015,]$Most_RushYds_Odds) #Max 25000
+summary(full.rb.data[full.rb.data$Year ==2016,]$Most_RushYds_Odds) #Max 30000
+summary(full.rb.data[full.rb.data$Year ==2017,]$Most_RushYds_Odds) #Max 30000
+summary(full.rb.data[full.rb.data$Year ==2018,]$Most_RushYds_Odds) #Max 20000
+summary(full.rb.data[full.rb.data$Year ==2019,]$Most_RushYds_Odds) #Max 20000
+summary(full.rb.data[full.rb.data$Year ==2020,]$Most_RushYds_Odds) #Max 10000
+summary(full.rb.data[full.rb.data$Year ==2021,]$Most_RushYds_Odds) #Max 50000
+summary(full.rb.data[full.rb.data$Year ==2022,]$Most_RushYds_Odds) #Max 20000
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2012 & is.na(Most_RushYds_Odds), 9000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2013 & is.na(Most_RushYds_Odds), 7600, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2014 & is.na(Most_RushYds_Odds), 9000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2015 & is.na(Most_RushYds_Odds), 26000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2016 & is.na(Most_RushYds_Odds), 31000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2017 & is.na(Most_RushYds_Odds), 31000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2018 & is.na(Most_RushYds_Odds), 21000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2019 & is.na(Most_RushYds_Odds), 21000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2020 & is.na(Most_RushYds_Odds), 11000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2021 & is.na(Most_RushYds_Odds), 51000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2022 & is.na(Most_RushYds_Odds), 21000, Most_RushYds_Odds))
+
+summary(full.rb.data$Most_RushYds_Odds)
+hist(full.rb.data$Most_RushYds_Odds)
+
+
+```
+
+Rookie / Non Rookie Split
+
+```{r message = FALSE, warning = FALSE}
+rookies <- full.rb.data[(full.rb.data$YearsPro == 1),]
+non.rookies <- full.rb.data[(full.rb.data$YearsPro != 1),]
+```
+
+### Non Rookie Analysis
+
+# Train/validation/Test Split - no rookies
+
+```{r message = FALSE, warning = FALSE}
+set.seed(5)
+train.index <- createDataPartition(non.rookies$Year, p = 0.80, list = FALSE)
+train <- non.rookies[train.index,]
+test <- non.rookies[-train.index,]
+```
+
+# Model Selection: Scaled Models
+
+Checking for multicollinearity
+
+```{r message = FALSE, warning = FALSE}
+#removing any variables that won't be used in analysis, cap numbers have inflation adjusted alternatives
+mc.check <- lm(Fantasy_Points_Half_PPR ~. - PlayerName - Team - Att - RushYds - RushTD - Fumble - Rec - RecYds - RecTD - RBCapNumber - RBCashSpent - OL_CapNum - OL_CashSpent - QB_CapNum - QB_CashSpent
+            #variables that have a scaled alternative, so they are removed
+      -PrevTgt - Prev_RushYds - Prev_Rush_TD - Prev_Att - PrevRec - Prev_Rec_Yds
+      - Prev_1D_Rush - Prev_Rec_TD - Prev_1D_Rec -Prev20Runs - Prev40Runs
+      #variables identified as M.C.
+      -DraftNum - Prev_Rec_Per_Game - Prev_Rush_Yds_Per_Game -Prev_RZ_RushAtt_Ins10_Perc, data = train)
+      
+#Didn't Remove: Prev_Rush_TD, Prev_1D_Rush, Prev20Runs, Prev40Runs, Prev_Rec_TD, Prev_1D_Rec even though they are potential question marks
+               
+vif(mc.check)
+```
+
+Removing obvious predictors of our data + multicollinearity. This
+removes any unscaled predictors as well
+
+```{r message = FALSE, warning = FALSE}
+train_reg <- train %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, PrevTgt,Prev_RushYds,Prev_Rush_TD, Prev_Att, PrevRec, Prev_Rec_Yds, Prev_1D_Rush,Prev_1D_Rec, Prev_Rec_TD, Prev20Runs, Prev40Runs, DraftNum, Prev_Rec_Per_Game, Prev_Rush_Yds_Per_Game, Prev_RZ_RushAtt_Ins10_Perc))
+
+test_reg <- test %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, PrevTgt,Prev_RushYds,Prev_Rush_TD, Prev_Att, PrevRec, Prev_Rec_Yds, Prev_1D_Rush,Prev_1D_Rec, Prev_Rec_TD, Prev20Runs, Prev40Runs, DraftNum, Prev_Rec_Per_Game, Prev_Rush_Yds_Per_Game, Prev_RZ_RushAtt_Ins10_Perc))
+
+```
+
+Scaling Predictors - train and test
+
+```{r message = FALSE, warning = FALSE}
+#train data
+train_reg$Age <- scale(train_reg$Age, center = TRUE, scale = TRUE)
+train_reg$Height_in <- scale(train_reg$Height_in, center = TRUE, scale = TRUE)
+train_reg$Weight_lbs <- scale(train_reg$Weight_lbs, center = TRUE, scale = TRUE)
+train_reg$YearsPro <- scale(train_reg$YearsPro, center = TRUE, scale = TRUE)
+train_reg$IA_RBCapNum <- scale(train_reg$IA_RBCapNum, center = TRUE, scale = TRUE)
+train_reg$IA_RBCashSpent <- scale(train_reg$IA_RBCashSpent, center = TRUE, scale = TRUE)
+train_reg$Prev_GP <- scale(train_reg$Prev_GP, center = TRUE, scale = TRUE)
+train_reg$Prev_Lng_Run <- scale(train_reg$Prev_Lng_Run, center = TRUE, scale = TRUE)
+train_reg$Prev_Yds_Per_Att <- scale(train_reg$Prev_Yds_Per_Att, center = TRUE, scale = TRUE)
+train_reg$Prev_Fmb <- scale(train_reg$Prev_Fmb, center = TRUE, scale = TRUE)
+train_reg$Prev_Att_Per_Game <- scale(train_reg$Prev_Att_Per_Game, center = TRUE, scale = TRUE)
+train_reg$Prev_1DRush_Per_Att <- scale(train_reg$Prev_1DRush_Per_Att, center = TRUE, scale = TRUE)
+train_reg$Prev_RZ_RushAtt_Ins20_Perc <- scale(train_reg$Prev_RZ_RushAtt_Ins20_Perc, center = TRUE, scale = TRUE)
+train_reg$Prev_RZ_RushAtt_Ins5_Perc <- scale(train_reg$Prev_RZ_RushAtt_Ins5_Perc, center = TRUE, scale = TRUE)
+train_reg$Prev20PerAtt <- scale(train_reg$Prev20PerAtt, center = TRUE, scale = TRUE)
+train_reg$Prev40PerAtt <- scale(train_reg$Prev40PerAtt, center = TRUE, scale = TRUE)
+train_reg$Prev_AttPerFum <- scale(train_reg$Prev_AttPerFum, center = TRUE, scale = TRUE)
+train_reg$Prev_RushTDPerAtt <- scale(train_reg$Prev_RushTDPerAtt, center = TRUE, scale = TRUE)
+train_reg$PrevRecPerAtt <- scale(train_reg$PrevRecPerAtt, center = TRUE, scale = TRUE)
+train_reg$PrevCatchPerc <- scale(train_reg$PrevCatchPerc, center = TRUE, scale = TRUE)
+train_reg$Prev_Yds_Per_Rec <- scale(train_reg$Prev_Yds_Per_Rec, center = TRUE, scale = TRUE)
+train_reg$Prev_Lng_Rec <- scale(train_reg$Prev_Lng_Rec, center = TRUE, scale = TRUE)
+train_reg$Prev_Yds_Per_Tgt <- scale(train_reg$Prev_Yds_Per_Tgt, center = TRUE, scale = TRUE)
+train_reg$Prev_RecYds_Per_Game <- scale(train_reg$Prev_RecYds_Per_Game, center = TRUE, scale = TRUE)
+train_reg$Prev_Tgt_Per_Game <- scale(train_reg$Prev_Tgt_Per_Game, center = TRUE, scale = TRUE)
+train_reg$Prev_RecTD_Per_Rec <- scale(train_reg$Prev_RecTD_Per_Rec, center = TRUE, scale = TRUE)
+train_reg$Prev_1DRec_Per_Rec <- scale(train_reg$Prev_1DRec_Per_Rec, center = TRUE, scale = TRUE)
+train_reg$Prev_Off_Rush_Pass_Perc <- scale(train_reg$Prev_Off_Rush_Pass_Perc, center = TRUE, scale = TRUE)
+train_reg$Prev_Team_Win_Perc <- scale(train_reg$Prev_Team_Win_Perc, center = TRUE, scale = TRUE)
+train_reg$Prev_Team_Offense_SRS <- scale(train_reg$Prev_Team_Offense_SRS, center = TRUE, scale = TRUE)
+train_reg$IA_OLCapNum <- scale(train_reg$IA_OLCapNum, center = TRUE, scale = TRUE)
+train_reg$IA_OLCashSpent <- scale(train_reg$IA_OLCashSpent, center = TRUE, scale = TRUE)
+train_reg$IA_QBCapNum <- scale(train_reg$IA_QBCapNum, center = TRUE, scale = TRUE)
+train_reg$IA_QBCashSpent <- scale(train_reg$IA_QBCashSpent, center = TRUE, scale = TRUE)
+train_reg$Team_Preseason_Odds <- scale(train_reg$Team_Preseason_Odds, center = TRUE, scale = TRUE)
+train_reg$Most_RushYds_Odds <- scale(train_reg$Most_RushYds_Odds, center = TRUE, scale = TRUE)
+train_reg$Madden_Rating <- scale(train_reg$Madden_Rating, center = TRUE, scale = TRUE)
+train_reg$PPR_ADP <- scale(train_reg$PPR_ADP, center = TRUE, scale = TRUE)
+
+#test data
+test_reg$Age <- scale(test_reg$Age, center = TRUE, scale = TRUE)
+test_reg$Height_in <- scale(test_reg$Height_in, center = TRUE, scale = TRUE)
+test_reg$Weight_lbs <- scale(test_reg$Weight_lbs, center = TRUE, scale = TRUE)
+test_reg$YearsPro <- scale(test_reg$YearsPro, center = TRUE, scale = TRUE)
+test_reg$IA_RBCapNum <- scale(test_reg$IA_RBCapNum, center = TRUE, scale = TRUE)
+test_reg$IA_RBCashSpent <- scale(test_reg$IA_RBCashSpent, center = TRUE, scale = TRUE)
+test_reg$Prev_GP <- scale(test_reg$Prev_GP, center = TRUE, scale = TRUE)
+test_reg$Prev_Lng_Run <- scale(test_reg$Prev_Lng_Run, center = TRUE, scale = TRUE)
+test_reg$Prev_Yds_Per_Att <- scale(test_reg$Prev_Yds_Per_Att, center = TRUE, scale = TRUE)
+test_reg$Prev_Fmb <- scale(test_reg$Prev_Fmb, center = TRUE, scale = TRUE)
+test_reg$Prev_Att_Per_Game <- scale(test_reg$Prev_Att_Per_Game, center = TRUE, scale = TRUE)
+test_reg$Prev_1DRush_Per_Att <- scale(test_reg$Prev_1DRush_Per_Att, center = TRUE, scale = TRUE)
+test_reg$Prev_RZ_RushAtt_Ins20_Perc <- scale(test_reg$Prev_RZ_RushAtt_Ins20_Perc, center = TRUE, scale = TRUE)
+test_reg$Prev_RZ_RushAtt_Ins5_Perc <- scale(test_reg$Prev_RZ_RushAtt_Ins5_Perc, center = TRUE, scale = TRUE)
+test_reg$Prev40PerAtt <- scale(test_reg$Prev40PerAtt, center = TRUE, scale = TRUE)
+test_reg$Prev20PerAtt <- scale(test_reg$Prev20PerAtt, center = TRUE, scale = TRUE)
+test_reg$Prev_AttPerFum <- scale(test_reg$Prev_AttPerFum, center = TRUE, scale = TRUE)
+test_reg$Prev_RushTDPerAtt <- scale(test_reg$Prev_RushTDPerAtt, center = TRUE, scale = TRUE)
+test_reg$PrevRecPerAtt <- scale(test_reg$PrevRecPerAtt, center = TRUE, scale = TRUE)
+test_reg$PrevCatchPerc <- scale(test_reg$PrevCatchPerc, center = TRUE, scale = TRUE)
+test_reg$Prev_Yds_Per_Rec <- scale(test_reg$Prev_Yds_Per_Rec, center = TRUE, scale = TRUE)
+test_reg$Prev_Lng_Rec <- scale(test_reg$Prev_Lng_Rec, center = TRUE, scale = TRUE)
+test_reg$Prev_Yds_Per_Tgt <- scale(test_reg$Prev_Yds_Per_Tgt, center = TRUE, scale = TRUE)
+test_reg$Prev_RecYds_Per_Game <- scale(test_reg$Prev_RecYds_Per_Game, center = TRUE, scale = TRUE)
+test_reg$Prev_Tgt_Per_Game <- scale(test_reg$Prev_Tgt_Per_Game, center = TRUE, scale = TRUE)
+test_reg$Prev_RecTD_Per_Rec <- scale(test_reg$Prev_RecTD_Per_Rec, center = TRUE, scale = TRUE)
+test_reg$Prev_1DRec_Per_Rec <- scale(test_reg$Prev_1DRec_Per_Rec, center = TRUE, scale = TRUE)
+test_reg$Prev_Off_Rush_Pass_Perc <- scale(test_reg$Prev_Off_Rush_Pass_Perc, center = TRUE, scale = TRUE)
+test_reg$Prev_Team_Win_Perc <- scale(test_reg$Prev_Team_Win_Perc, center = TRUE, scale = TRUE)
+test_reg$Prev_Team_Offense_SRS <- scale(test_reg$Prev_Team_Offense_SRS, center = TRUE, scale = TRUE)
+test_reg$IA_OLCapNum <- scale(test_reg$IA_OLCapNum, center = TRUE, scale = TRUE)
+test_reg$IA_OLCashSpent <- scale(test_reg$IA_OLCashSpent, center = TRUE, scale = TRUE)
+test_reg$IA_QBCapNum <- scale(test_reg$IA_QBCapNum, center = TRUE, scale = TRUE)
+test_reg$IA_QBCashSpent <- scale(test_reg$IA_QBCashSpent, center = TRUE, scale = TRUE)
+test_reg$Team_Preseason_Odds <- scale(test_reg$Team_Preseason_Odds, center = TRUE, scale = TRUE)
+test_reg$Most_RushYds_Odds <- scale(test_reg$Most_RushYds_Odds, center = TRUE, scale = TRUE)
+test_reg$Madden_Rating <- scale(test_reg$Madden_Rating, center = TRUE, scale = TRUE)
+test_reg$PPR_ADP <- scale(test_reg$PPR_ADP, center = TRUE, scale = TRUE)
+```
+
+Model Selection
+
+```{r message = FALSE, warning = FALSE}
+full.mod <- lm(Fantasy_Points_Half_PPR ~., data = train_reg)
+
+empty.mod <- lm(Fantasy_Points_Half_PPR ~ 1, data = train_reg)
+
+forward.model.aic <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "forward", k = 2)
+
+backward.model.aic <- step(full.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "backward", k = 2)
+
+step.model.aic <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "both", k = 2)
+
+###########################################################
+#I set a higher p value here to get a wider array of options
+
+forward.model.pval <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "forward", k = qchisq(0.10,1, lower.tail = FALSE))
+
+backward.model.pval <- step(full.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "backward", k = qchisq(0.10,1, lower.tail = FALSE))
+
+step.model.pval <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "both", k = qchisq(0.10,1, lower.tail = FALSE))
+```
+
+Forward AIC: Fantasy_Points_Half_PPR \~ Madden_Rating +
+FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in +
+IA_OLCashSpent + YearsPro + PrevRecPerAtt + PrevGT1600 + Prev_Lng_Rec +
+FranchiseTag
+
+AIC = 6371.521
+
+Backward AIC: Fantasy_Points_Half_PPR \~ Height_in + FirstYearOnTeam +
+YearsPro + IA_RBCashSpent + Prev_GP + Prev_Yds_Per_Att +
+Prev_Att_Per_Game + Prev_1DRush_Per_Att + Prev_RZ_RushAtt_Ins20_Perc +
+Prev40PerAtt + Prev_Yds_Per_Rec + Prev_Yds_Per_Tgt + IA_OLCashSpent +
+PrevGT1600 + PrevGT320 + FranchiseTag + Madden_Rating + PPR_ADP
+
+AIC = 6377.554
+
+Step AIC: Fantasy_Points_Half_PPR \~ Madden_Rating + FirstYearOnTeam +
+IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in + IA_OLCashSpent +
+YearsPro + PrevRecPerAtt + PrevGT1600 + Prev_Lng_Rec + FranchiseTag
+
+AIC = 6371.521
+
+------------------------------------------------------------------- x
+Forward P Val: Fantasy_Points_Half_PPR \~ Madden_Rating +
+FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in +
+IA_OLCashSpent + YearsPro + PrevRecPerAtt
+
+AIC = 6372.397
+
+Backward P Val: Fantasy_Points_Half_PPR \~ Height_in + FirstYearOnTeam +
+YearsPro + IA_RBCashSpent + Prev_Yds_Per_Rec + Prev_Yds_Per_Tgt +
+IA_OLCashSpent + PrevGT320 + Madden_Rating + PPR_ADP
+
+AIC = 6374.101
+
+Step P Val: Fantasy_Points_Half_PPR \~ Madden_Rating + FirstYearOnTeam +
+IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in + IA_OLCashSpent +
+YearsPro + PrevRecPerAtt
+
+AIC = 6372.397
+
+# Build Model, check diagnostics, outliers/influential obs
+
+conservative alpha levels for train sample size of 580 variables:
+
+pvals: 0.05 --\> 0.025 pvals: 0.01 --\> 0.007
+
+-   Multiple Linear Regression
+
+-   Try 4 different models: Less Focus on Scaled Values (R-Sq High, AIC
+    Low) More Focus on Scaled Values (R-Sq High, AIC Low)
+
+Decided that observation 153: Adrian Peterson's 2014 injury year is a
+true outlier. Remove him from dataset.
+
+```{r message = FALSE, warning = FALSE}
+train_reg <- train_reg[-c(153),]
+```
+
+### Scaled Values, Highest Adj. R-Squared
+
+```{r message = FALSE, warning = FALSE}
+final.mod <- lm(Fantasy_Points_Half_PPR ~ Height_in + FirstYearOnTeam + 
+    IA_RBCashSpent + PrevGT320 + Madden_Rating + I(Madden_Rating^2) + PPR_ADP + I(PPR_ADP^2) + Most_RushYds_Odds + ImputedOddsRushYds + PrevRecPerAtt + Most_RushYds_Odds:ImputedOddsRushYds, data = train_reg)
+
+#AIC(final.mod)
+vif(final.mod)
+summary(final.mod)
+plot(final.mod)
+```
+
+Testing Assumptions
+
+```{r message = FALSE, warning = FALSE}
+#Linearity of the Mean + Equal Variance of the Residuals
+ggplot(final.mod, aes(x = fitted.values(final.mod), y = resid(final.mod))) + 
+  geom_point() +
+  geom_hline(yintercept= 0)
+
+#testing equal variance b/c graph looks slightly heteroskedastic
+cor.test(abs(resid(final.mod)), fitted.values(final.mod), method = 'spearman', exact= F) #states we reject the null, so it's heteroskedastic
+
+###############################################################################
+########## Identifying Specific Variables for Pattern in Random Errors ############
+###################################################################################
+
+#ggplot(final.mod, aes(x =Age, y = resid(final.mod))) + 
+  #geom_point() +
+  #geom_hline(yintercept= 0) #looks fairly balanced, maybe slightly quadratic?
+
+ggplot(final.mod, aes(x =Height_in, y = resid(final.mod))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #looks fairly balanced, maybe slightly quadratic?
+
+ggplot(final.mod, aes(x =IA_RBCashSpent, y = resid(final.mod))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #looks bunched up close to 0, but nice band across
+
+#ggplot(final.mod, aes(x =YearsPro, y = resid(final.mod))) + 
+ # geom_point() +
+ #geom_hline(yintercept= 0) #looks good
+
+#ggplot(final.mod, aes(x =IA_OLCashSpent, y = resid(final.mod))) + 
+  #geom_point() +
+  #geom_hline(yintercept= 0) #balanced
+
+ggplot(final.mod, aes(x =Madden_Rating, y = resid(final.mod))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #close, slight reverse cone shape
+  
+ggplot(final.mod, aes(x =PPR_ADP, y = resid(final.mod))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #looks bunched up close to 0, cone shaped throughout
+
+ggplot(final.mod, aes(x =Most_RushYds_Odds, y = resid(final.mod))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #heavy in areas of imputation
+
+#ggplot(final.mod, aes(x =Prev_GP, y = resid(final.mod))) + 
+#  geom_point() +
+#  geom_hline(yintercept= 0) #higher variability in playing full games
+
+#ggplot(final.mod, aes(x =Prev_Yds_Per_Att, y = resid(final.mod))) + 
+  #geom_point() +
+  #geom_hline(yintercept= 0) #circle shape with some zeros
+
+#ggplot(final.mod, aes(x =Prev_Att_Per_Game, y = resid(final.mod))) + 
+#  geom_point() +
+ # geom_hline(yintercept= 0) #not bad, good band
+
+#ggplot(final.mod, aes(x =Prev_1DRush_Per_Att, y = resid(final.mod))) + 
+ # geom_point() +
+ # geom_hline(yintercept= 0) #circle shape with some zeros
+
+#ggplot(final.mod, aes(x =Prev_RZ_RushAtt_Ins20_Perc, y = resid(final.mod))) + 
+ # geom_point() +
+ # geom_hline(yintercept= 0) #not bad
+
+#ggplot(final.mod, aes(x =Prev_Yds_Per_Rec, y = resid(final.mod))) + 
+  #geom_point() +
+  #geom_hline(yintercept= 0) #1 clear outlier, otherwise fine
+
+#ggplot(final.mod, aes(x =Prev40PerAtt, y = resid(final.mod))) + 
+ # geom_point() +
+  #geom_hline(yintercept= 0) #cone shape
+
+ggplot(final.mod, aes(x =PrevRecPerAtt, y = resid(final.mod))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #fine, bunched close to 0
+
+#ggplot(final.mod, aes(x =Prev_Lng_Rec, y = resid(final.mod))) + 
+ # geom_point() +
+  #geom_hline(yintercept= 0) #balanced
+
+#ggplot(final.mod, aes(x =Prev_Team_Offense_SRS, y = resid(final.mod))) + 
+ # geom_point() +
+ # geom_hline(yintercept= 0) #balanced
+
+#ggplot(final.mod, aes(x =Team_Preseason_Odds, y = resid(final.mod))) + 
+#  geom_point() +
+ # geom_hline(yintercept= 0) #slight cone shape but balanced
+
+####boxplots
+ggplot(final.mod, aes(x =PrevGT320, y = resid(final.mod))) + 
+  geom_boxplot() #clear difference
+
+#ggplot(final.mod, aes(x =PrevGT1600, y = resid(final.mod))) + 
+#  geom_boxplot() #slight difference
+
+ggplot(final.mod, aes(x =FirstYearOnTeam, y = resid(final.mod))) + 
+  geom_boxplot() #don't see a difference
+
+#ggplot(final.mod, aes(x =FranchiseTag, y = resid(final.mod))) + 
+#  geom_boxplot() #slight differencenot bad
+
+#ggplot(final.mod, aes(x =RookieContractYear, y = resid(final.mod))) + 
+  #geom_boxplot() #wide variability
+
+hist(resid(final.mod))
+
+qqnorm(resid(final.mod))
+qqline(resid(final.mod))
+
+ad.test(resid(final.mod))
+shapiro.test(resid(final.mod)) #both have their flaws, but both reject - Not Normal
+
+boxcox(final.mod)
+```
+
+Testing Outliers and Influential Observations
+
+```{r message = FALSE, warning = FALSE}
+n.index <- seq(1, nrow(train_reg))
+train_reg <- cbind(n.index, train_reg)
+
+n.index2 <- seq(1, nrow(test_reg))
+test_reg <- cbind(n.index2, test_reg)
+
+#Studentized Residuals: Outliers
+
+ggplot(final.mod, aes(x = n.index, y = rstudent(final.mod))) +
+  geom_point(color = "orange") + #identifies ~4 outliers
+  geom_line(y = -3) +
+  geom_line(y = 3)
+
+#Cook's Distance
+D.cut <- 4/(nrow(train_reg) - 5 - 1)
+
+ggplot(final.mod, aes(x = n.index, y = cooks.distance(final.mod))) +
+  geom_point(color = "red") + #see ~ 19 influential observations
+  geom_line(y = D.cut)
+
+#Hat values
+hat.cut <- 2*(12)/nrow(train_reg)
+  
+ggplot(final.mod, aes(x = n.index, y = hatvalues(final.mod))) +
+  geom_point(color = "purple") +
+  geom_line(y = hat.cut)
+
+
+#Hat Values vs Studentized Residuals - points both outliers and infl obs
+
+ggplot(final.mod, aes(x = hatvalues(final.mod), y = rstudent(final.mod))) +
+  geom_point(color = "blue") + 
+  labs(x = "Hat Values", y = "Residuals") #identifies 5 points here
+```
+
+### Scaled Values, Lowest AIC
+
+```{r message = FALSE, warning = FALSE}
+final.mod2 <- lm(Fantasy_Points_Half_PPR^0.5 ~ Height_in + FirstYearOnTeam + 
+    IA_RBCashSpent + PrevGT320 + Madden_Rating + I(Madden_Rating^2) + PPR_ADP + I(PPR_ADP^2)+ Most_RushYds_Odds + ImputedOddsRushYds + PrevRecPerAtt + Most_RushYds_Odds:ImputedOddsRushYds,data = train_reg)
+
+AIC(final.mod2)
+
+vif(final.mod2)
+summary(final.mod2)
+
+plot(final.mod2)
+
+#Normality
+ad.test(resid(final.mod2))
+shapiro.test(resid(final.mod2))
+
+boxcox(final.mod2)
+```
+
+# Model Selection: Unscaled Models
+
+Checking for multicollinearity
+
+```{r message = FALSE, warning = FALSE}
+#removing any variables that won't be used in analysis, cap numbers have inflation adjusted alternatives
+mc.check <- lm(Fantasy_Points_Half_PPR ~. - PlayerName - Team - Att - RushYds - RushTD - Fumble - Rec - RecYds - RecTD - RBCapNumber - RBCashSpent - OL_CapNum - OL_CashSpent - QB_CapNum - QB_CashSpent
+            #variables that have an unscaled alternative, so they are removed
+      -Prev_Yds_Per_Att - Prev_Rush_Yds_Per_Game - Prev_Att_Per_Game - Prev_1DRush_Per_Att - Prev20PerAtt - Prev40PerAtt -Prev_AttPerFum - Prev_RushTDPerAtt - PrevRecPerAtt - PrevCatchPerc - Prev_Yds_Per_Rec - Prev_Yds_Per_Tgt - Prev_Rec_Per_Game - Prev_RecYds_Per_Game - Prev_Tgt_Per_Game - 
+        Prev_RecTD_Per_Rec - Prev_1DRec_Per_Rec 
+      #variables identified as M.C.
+-DraftNum - Prev_RushYds - PrevRec - Prev_RZ_RushAtt_Ins10_Perc - Prev_Rec_Yds, data = train)
+
+            
+vif(mc.check)
+```
+
+Removing obvious predictors of our data + multicollinearity. This
+removes any scaled predictors as well
+
+```{r message = FALSE, warning = FALSE}
+train_reg2 <- train %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds))
+
+test_reg2 <- test %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds))
+
+```
+
+Model Selection
+
+```{r message = FALSE, warning = FALSE}
+full.mod <- lm(Fantasy_Points_Half_PPR ~., data = train_reg2)
+
+empty.mod <- lm(Fantasy_Points_Half_PPR ~ 1, data = train_reg2)
+
+forward.model.aic <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "forward", k = 2)
+
+backward.model.aic <- step(full.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "backward", k = 2)
+
+step.model.aic <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "both", k = 2)
+
+###########################################################
+#I set a higher p value here to get a wider array of options
+
+forward.model.pval <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "forward", k = qchisq(0.10,1, lower.tail = FALSE))
+
+backward.model.pval <- step(full.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "backward", k = qchisq(0.10,1, lower.tail = FALSE))
+
+#step.model.pval <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "both", k = qchisq(0.10,1, lower.tail = FALSE))
+```
+
+Forward AIC: Fantasy_Points_Half_PPR \~ Madden_Rating +
+FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in +
+IA_OLCashSpent + YearsPro + Prev_1D_Rec + Prev_Lng_Rec + PrevGT1600 +
+FranchiseTag
+
+AIC = 6369.514
+
+Backward AIC: Fantasy_Points_Half_PPR \~ Height_in + FirstYearOnTeam +
+YearsPro + IA_RBCashSpent + Prev_GP + Prev_Rush_TD + Prev_1D_Rec +
+Prev_Lng_Rec + IA_OLCashSpent + PrevGT1600 + PrevGT320 + Madden_Rating +
+PPR_ADP
+
+AIC = 6369.181
+
+Step AIC: Fantasy_Points_Half_PPR \~ Madden_Rating + FirstYearOnTeam +
+IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in + IA_OLCashSpent +
+YearsPro + Prev_1D_Rec + Prev_Lng_Rec + PrevGT1600 + FranchiseTag
+
+AIC = 6369.514
+
+------------------------------------------------------------------- x
+Forward P Val: Fantasy_Points_Half_PPR \~ Madden_Rating +
+FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in +
+IA_OLCashSpent + YearsPro
+
+AIC = 6373.295
+
+Backward P Val: Fantasy_Points_Half_PPR \~ Height_in + FirstYearOnTeam +
+YearsPro + IA_RBCashSpent + Prev_1D_Rec + Prev_Lng_Rec +
+IA_OLCashSpent + PrevGT320 + Madden_Rating + PPR_ADP
+
+AIC = 6370.259
+
+# Build Model, check diagnostics, outliers/influential obs
+
+conservative alpha levels for train sample size of 580 variables:
+
+pvals: 0.05 --\> 0.025 pvals: 0.01 --\> 0.007
+
+-   Multiple Linear Regression
+
+-   Try 4 different models: Less Focus on Scaled Values (R-Sq High, AIC
+    Low) More Focus on Scaled Values (R-Sq High, AIC Low)
+
+Decided that observation 153: Adrian Peterson's 2014 injury year is a
+true outlier. Remove him from dataset.
+
+```{r message = FALSE, warning = FALSE}
+train_reg2 <- train_reg2[-c(153),]
+```
+
+### Unscaled Values, Highest Adj. R-Squared
+
+```{r message = FALSE, warning = FALSE}
+final.mod3 <- lm(Fantasy_Points_Half_PPR ~ Madden_Rating + I(Madden_Rating^2) + FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + I(PPR_ADP^2)+ PrevGT320 + Height_in + Prev_1D_Rec + I(Prev_1D_Rec^2)+ Prev_Lng_Rec + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = train_reg2)
+
+
+#AIC(final.mod3)
+summary(final.mod3)
+plot(final.mod3)
+
+```
+
+Testing Assumptions
+
+```{r message = FALSE, warning = FALSE}
+#Linearity of the Mean + Equal Variance of the Residuals
+ggplot(final.mod3, aes(x = fitted.values(final.mod3), y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #apparent heteroskedasticity
+
+#testing equal variance b/c graph looks slightly heteroskedastic
+cor.test(abs(resid(final.mod3)), fitted.values(final.mod3), method = 'spearman', exact= F) #states we reject the null, so it's heteroskedastic
+
+###############################################################################
+########## Identifying Specific Variables for Pattern in Random Errors ############
+###################################################################################
+
+#ggplot(final.mod3, aes(x =Age, y = resid(final.mod3))) + 
+ # geom_point() +
+#  geom_hline(yintercept= 0) #looks fairly balanced, maybe slightly quadratic?
+
+ggplot(final.mod3, aes(x =Height_in, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #looks fairly balanced, maybe slightly quadratic?
+
+ggplot(final.mod3, aes(x =IA_RBCashSpent, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #looks bunched up close to 0, but nice band across
+
+#ggplot(final.mod3, aes(x =YearsPro, y = resid(final.mod3))) + 
+ # geom_point() +
+  #geom_hline(yintercept= 0) #looks good
+
+#ggplot(final.mod3, aes(x =IA_OLCashSpent, y = resid(final.mod3))) + 
+ # geom_point() +
+  #geom_hline(yintercept= 0) #balanced
+
+ggplot(final.mod3, aes(x =Madden_Rating, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #close, slight reverse cone shape
+  
+ggplot(final.mod3, aes(x =PPR_ADP, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #looks bunched up close to 0, cone shaped throughout
+
+ggplot(final.mod3, aes(x =Most_RushYds_Odds, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #heavy in areas of imputation
+
+#ggplot(final.mod3, aes(x =Prev_GP, y = resid(final.mod3))) + 
+#  geom_point() +
+#  geom_hline(yintercept= 0) #higher variability in playing full games
+
+ggplot(final.mod3, aes(x =Prev_1D_Rec, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #fine
+
+ggplot(final.mod3, aes(x =Prev_Lng_Rec, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #fine
+
+#ggplot(final.mod3, aes(x =Prev_Team_Offense_SRS, y = resid(final.mod3))) + 
+#  geom_point() +
+ # geom_hline(yintercept= 0) #fine
+
+#ggplot(final.mod3, aes(x =Prev_RZ_RushAtt_Ins20_Perc, y = resid(final.mod3))) + 
+ # geom_point() +
+ # geom_hline(yintercept= 0) #not bad
+
+#ggplot(final.mod3, aes(x =Prev40Runs, y = resid(final.mod3))) + 
+ # geom_point() +
+ # geom_hline(yintercept= 0) #fine
+
+#ggplot(final.mod3, aes(x= Team_Preseason_Odds, y = resid(final.mod3))) +
+ # geom_point() +
+ # geom_hline(yintercept = 0) #heteroskedastic, pulled by 2 main points
+
+####boxplots
+ggplot(final.mod3, aes(x =PrevGT320, y = resid(final.mod3))) + 
+  geom_boxplot() #clear difference
+
+#ggplot(final.mod3, aes(x =PrevGT1600, y = resid(final.mod3))) + 
+ # geom_boxplot() #slight difference
+
+ggplot(final.mod3, aes(x =FirstYearOnTeam, y = resid(final.mod3))) + 
+  geom_boxplot() #don't see a difference
+
+#ggplot(final.mod3, aes(x =FranchiseTag, y = resid(final.mod3))) + 
+ # geom_boxplot() #slight differencenot bad
+
+#ggplot(final.mod3, aes(x =RookieContractYear, y = resid(final.mod3))) + 
+ # geom_boxplot() #wide variability
+
+hist(resid(final.mod3))
+
+qqnorm(resid(final.mod3))
+qqline(resid(final.mod3))
+
+ad.test(resid(final.mod3))
+shapiro.test(resid(final.mod3)) #both have their flaws, but both reject - Not Normal
+
+boxcox(final.mod3)
+```
+
+### Unscaled Values, Lowest AIC
+
+```{r message = FALSE, warning = FALSE}
+final.mod4 <- lm(Fantasy_Points_Half_PPR^0.5 ~ Madden_Rating + FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + I(PPR_ADP^2)+ PrevGT320 + Height_in + Prev_1D_Rec + Prev_Lng_Rec + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = train_reg2)
+
+
+AIC(final.mod4)
+summary(final.mod4)
+plot(final.mod4)
+
+hist(resid(final.mod4))
+
+qqnorm(resid(final.mod4))
+qqline(resid(final.mod4))
+
+ad.test(resid(final.mod4))
+shapiro.test(resid(final.mod4)) #both have their flaws, but both reject - Not Normal
+
+boxcox(final.mod4)
+```
+
+------------------------------------------------------------------------
+
+# Lasso Regression
+
+train/test split for lasso reg - scaled vars not needed
+
+train/test split for lasso reg - unscaled vars
+
+```{r message = FALSE, warning = FALSE}
+train_x2 <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = train_reg2)[, -1]
+train_y2 <- train_reg2$Fantasy_Points_Half_PPR
+test_x2 <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = test_reg2)[, -1]
+test_y2 <- test_reg2$Fantasy_Points_Half_PPR
+```
+
+```{r message = FALSE, warning = FALSE}
+ff_lasso2 <- glmnet(x = train_x2, y = train_y2, alpha = 1)
+plot(ff_lasso2, xvar = "lambda")
+
+ff_lasso_cv2 <- cv.glmnet(x = train_x2, y = train_y2, alpha = 1)
+plot(ff_lasso_cv2)
+
+coef(ff_lasso2, s = c(ff_lasso_cv2$lambda.min, ff_lasso_cv2$lambda.1se))
+```
+
+Principle Component Analysis/Regression
+
+```{r message = FALSE, warning = FALSE}
+train_reg3 <- train %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent,Year))
+
+test_reg3 <- test %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent,Year))
+
+train_reg3 <- train_reg3[-c(153),] #removes Adrian Peterson 2014 outlier year
+
+train_x3 <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = train_reg3)[, -1]
+train_y3 <- train_reg3$Fantasy_Points_Half_PPR
+test_x3 <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = test_reg3)[, -1]
+test_y3 <- test_reg3$Fantasy_Points_Half_PPR
+
+
+set.seed(5)
+pcr.fit <- pcr(Fantasy_Points_Half_PPR ~ ., data = train_reg3, scale = TRUE, validation = "CV")
+
+summary(pcr.fit)
+
+validationplot(pcr.fit, val.type = "MSEP")
+
+#based on results of validation plot, wanted to try various components to see how it fits best
+pcr.pred <- predict(pcr.fit, test_x3, ncomp = 1)
+mean((pcr.pred - test_y3)^2) #4541.784
+
+pcr.pred <- predict(pcr.fit, test_x3, ncomp = 5)
+mean((pcr.pred - test_y3)^2) #4227.251
+
+pcr.pred <- predict(pcr.fit, test_x3, ncomp = 10)
+mean((pcr.pred - test_y3)^2) #4322.317
+
+```
+
+Partial Least Squares
+
+```{r}
+set.seed(5)
+pls.fit <- plsr(Fantasy_Points_Half_PPR ~., data= train_reg3, scale = TRUE, validation= "CV")
+
+summary(pls.fit)
+
+validationplot(pls.fit, val.type = "MSEP")
+
+#based on validation plot, M = 2components was best option
+pls.pred <- predict(pls.fit, test_x3, ncomp = 2)
+mean((pls.pred - test_y3)^2) #4248.735
+```
+
+Decision Tree / Random Forest
+
+```{r}
+#Decision Tree
+set.seed(5)
+
+tree.ff <- tree(Fantasy_Points_Half_PPR ~ ., data = train_reg3)
+summary(tree.ff)
+
+
+plot(tree.ff)
+text(tree.ff, pretty = 0)
+
+cv.ff.tree <- cv.tree(tree.ff)
+plot(cv.ff.tree$size, cv.ff.tree$dev, type = "b")
+
+tree.pred <- predict(tree.ff, newdata = test_reg3)
+mean((tree.pred - test_y3)^2) #4446.579
+
+#Random Forest
+set.seed(5) #rows of data/3 = mtry
+ff.rf <- randomForest(Fantasy_Points_Half_PPR ~ ., data = train_reg3, mtry = 21, importance = TRUE) #
+
+rf.pred <- predict(ff.rf, newdata = test_reg3)
+mean((rf.pred - test_y3)^2) #4028.147
+
+importance(ff.rf)
+varImpPlot(ff.rf)
+
+#Gradient Boosted
+set.seed(5)
+ff.boost <- gbm(Fantasy_Points_Half_PPR ~ ., data = train_reg3, distribution = "gaussian", n.trees = 500, interaction.depth = 4, shrinkage = 0.01, verbose = F)
+
+summary(ff.boost)
+
+plot(ff.boost, i = "PPR_ADP") #partial dependence plot. As ADP inc, fpts dec
+
+boost.pred <- predict(ff.boost, newdata = test_reg3, n.trees = 500)
+mean((boost.pred - test_y3)^2) #4058.779
+
+
+#BART
+train_x3 <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = train_reg3)[, -1]
+train_y3 <- train_reg3$Fantasy_Points_Half_PPR
+test_x3 <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = test_reg3)[, -1]
+test_y3 <- test_reg3$Fantasy_Points_Half_PPR
+
+set.seed(5)
+ff.bart <- gbart(train_x3, train_y3, x.test = test_x3)
+
+bart.pred <- ff.bart$yhat.test.mean
+mean((bart.pred - test_y3)^2) #4175.518
+```
+
+# Model Evaluation
+
+```{r}
+#Any transformations to train variables --> apply to test
+pred_lm3 <- predict(final.mod3, newdata = test_reg2) #linear model 3
+pred_lm4 <- predict(final.mod4, newdata = test_reg2) #linear model 4
+
+
+######################################################################
+pred_lasso.min2 <- predict(ff_lasso2, s = ff_lasso_cv2$lambda.min, newx = test_x2) #min lasso 2
+pred_lasso.1se2 <- predict(ff_lasso2, s = ff_lasso_cv2$lambda.1se, newx = test_x2) #1se lasso 2
+
+#####################################################################
+#Test MSE
+
+#MLR
+mean((pred_lm3-test_y2)^2) #unscaled, R-sq high
+#4330.715
+mean((pred_lm4^2-test_y2)^2) #unscaled, AIC --> squared pred to match apples to apples
+#4761.269
+
+#test %>%
+#mutate(lm_APE = 100*abs((Fantasy_Points_Half_PPR - pred_lm)/Fantasy_Points_Half_PPR)) %>%
+#dplyr::summarise(MAPE_lm = mean(lm_APE))
+
+#Lasso
+
+mean((pred_lasso.min2 - test_y2)^2) #unscaled, min
+#4593.877
+mean((pred_lasso.1se2 - test_y2)^2) #unscaled, 1se
+#4848.297
+
+#test_reg %>%
+#mutate(lasso_APE.min = 100*abs((Fantasy_Points_Half_PPR - pred_lasso.min)/Fantasy_Points_Half_PPR)) %>%
+#dplyr::summarise(MAPE_lasso = mean(lasso_APE.min))
+
+#test_reg %>%
+#mutate(lasso_APE.1se = 100*abs((Fantasy_Points_Half_PPR - pred_lasso.1se)/Fantasy_Points_Half_PPR)) %>%
+#dplyr::summarise(MAPE_lasso = mean(lasso_APE.1se))
+```
+
+### Rookie Analysis
+
+# Train/validation/Test Split - rookies
+
+```{r message = FALSE, warning = FALSE}
+set.seed(5)
+train.index2 <- createDataPartition(rookies$Year, p = 0.80, list = FALSE)
+train2 <- rookies[train.index2,]
+test2 <- rookies[-train.index2,]
+```
+
+Removing obvious predictors of our data + multicollinearity. This
+removes any scaled predictors as well
+
+```{r message = FALSE, warning = FALSE}
+train_rook_reg <- train2 %>%
+  dplyr::select(-c(PlayerName, Year, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))
+
+test_rook_reg <- test2 %>%
+  dplyr::select(-c(PlayerName, Year, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))
+
+```
+
+Model Selection
+
+```{r message = FALSE, warning = FALSE}
+full.mod <- lm(Fantasy_Points_Half_PPR ~., data = train_rook_reg)
+
+empty.mod <- lm(Fantasy_Points_Half_PPR ~ 1, data = train_rook_reg)
+
+forward.model.aic <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "forward", k = 2)
+
+backward.model.aic <- step(full.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "backward", k = 2)
+
+step.model.aic <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "both", k = 2)
+
+###########################################################
+#I set a higher p value here to get a wider array of options
+
+forward.model.pval <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "forward", k = qchisq(0.10,1, lower.tail = FALSE))
+
+backward.model.pval <- step(full.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "backward", k = qchisq(0.10,1, lower.tail = FALSE))
+
+#step.model.pval <- step(empty.mod, scope = list(lower = empty.mod, upper = full.mod), direction = "both", k = qchisq(0.10,1, lower.tail = FALSE))
+```
+
+all models were the same 3 variables
+
+# Build Model, check diagnostics, outliers/influential obs
+
+```{r}
+rookie_lm <- lm(Fantasy_Points_Half_PPR^0.5 ~ IA_RBCapNum + sqrt(PPR_ADP) + FirstYearOnTeam + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = train_rook_reg)
+
+AIC(rookie_lm)
+summary(rookie_lm)
+plot(rookie_lm)
+
+
+ggplot(rookie_lm, aes(x = IA_RBCapNum, y = resid(rookie_lm))) + 
+  geom_point(color = "orange") +
+  geom_hline(yintercept = 0)
+
+ggplot(rookie_lm, aes(x = PPR_ADP, y = resid(rookie_lm))) + 
+  geom_point(color = "orange") +
+  geom_hline(yintercept = 0)
+
+ggplot(rookie_lm, aes(x = Most_RushYds_Odds, y = resid(rookie_lm))) + 
+  geom_point(color = "orange") +
+  geom_hline(yintercept = 0)
+
+hist(resid(rookie_lm))
+
+ad.test(resid(rookie_lm))
+shapiro.test(resid(rookie_lm))
+
+boxcox(rookie_lm)
+```
+
+Principle Component Analysis
+
+```{r}
+train_x_rook <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg)[, -1]
+
+train_y_rook <- train_rook_reg$Fantasy_Points_Half_PPR
+
+test_x_rook <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = test_rook_reg)[, -1]
+
+test_y_rook <- test_rook_reg$Fantasy_Points_Half_PPR
+
+
+set.seed(5)
+pcr.fit <- pcr(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg, scale = TRUE, validation = "CV")
+
+summary(pcr.fit)
+
+validationplot(pcr.fit, val.type = "MSEP")
+
+#based on results of validation plot, wanted to try various components to see how it fits best
+pcr.pred <- predict(pcr.fit, test_x_rook, ncomp = 1)
+mean((pcr.pred - test_y_rook)^2) #3629.757
+
+pcr.pred <- predict(pcr.fit, test_x_rook, ncomp = 5)
+mean((pcr.pred - test_y_rook)^2) #4244.852
+```
+
+Partial Least Squares
+
+```{r}
+set.seed(5)
+pls.fit <- plsr(Fantasy_Points_Half_PPR ~., data= train_rook_reg, scale = TRUE, validation= "CV")
+
+summary(pls.fit)
+
+validationplot(pls.fit, val.type = "MSEP")
+
+#based on validation plot, M = 1components was best option
+pls.pred <- predict(pls.fit, test_x_rook, ncomp = 1)
+mean((pls.pred - test_y_rook)^2) #3879.036
+```
+
+Decision Tree / Random Forest
+
+```{r}
+#Decision Tree
+set.seed(5)
+
+tree.ff <- tree(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg)
+summary(tree.ff)
+
+
+plot(tree.ff)
+text(tree.ff, pretty = 0)
+
+cv.ff.tree <- cv.tree(tree.ff)
+plot(cv.ff.tree$size, cv.ff.tree$dev, type = "b")
+
+tree.pred <- predict(tree.ff, newdata = test_rook_reg)
+mean((tree.pred - test_y_rook)^2) #5337.597
+
+
+#Bagging - uses all variables
+
+set.seed(5)
+ff.bag <- randomForest(Fantasy_Points_Half_PPR ~., data = train_rook_reg, mtry = 6, importance = TRUE)
+
+bag.pred <- predict(ff.bag, newdata = test_rook_reg)
+mean((bag.pred - test_y_rook)^2) #3994.414
+
+plot(bag.pred, test_y_rook)
+abline(0,1)
+
+
+#Random Forest
+set.seed(5) #set mtry = p/3
+ff.rf <- randomForest(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg, mtry = 6, importance = TRUE) 
+
+rf.pred <- predict(ff.rf, newdata = test_rook_reg)
+mean((rf.pred - test_y_rook)^2) #3994.414
+
+importance(ff.rf)
+varImpPlot(ff.rf)
+
+#Gradient Boosted
+set.seed(5)
+ff.boost <- gbm(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg, distribution = "gaussian", n.trees = 1000, interaction.depth = 4, shrinkage = 0.01, verbose = F)
+
+summary(ff.boost)
+
+plot(ff.boost, i = "PPR_ADP") #partial dependence plot. As ADP inc, fpts dec
+
+boost.pred <- predict(ff.boost, newdata = test_rook_reg, n.trees = 1000)
+mean((boost.pred - test_y_rook)^2) #4146.975
+```
+
+# Model Evaluation
+
+```{r}
+#Any transformations to train variables --> apply to test
+pred_lm_rookies <- predict(rookie_lm, newdata = test_rook_reg) #linear model1
+
+#Test MSE
+
+#MLR
+mean((pred_lm_rookies^2 - test_y_rook)^2) #squared predictions b/c of y transformation
+#2963.372
+```
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+Train/Test Split for 2012-2021 train, 2022 test
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+#################################################################### x
+
+Model Deployment
+
+```{r message = FALSE, warning= FALSE}
+ff2023 <- read_excel("2023 Predictions.xlsx")
+```
+
+Transform Data Types
+
+```{r message = FALSE, warning = FALSE}
+ff2023$Year <- as.factor(ff2023$Year)
+ff2023$Team <- as.factor(ff2023$Team)
+ff2023$FirstYearOnTeam <- as.factor(ff2023$FirstYearOnTeam)
+ff2023$AgeGT28 <- as.factor(ff2023$AgeGT28)
+ff2023$PrevGT1600 <- as.factor(ff2023$PrevGT1600)
+ff2023$PrevGT320 <- as.factor(ff2023$PrevGT320)
+ff2023$DraftRound <- as.factor(ff2023$DraftRound)
+ff2023$RookieContractYear <- as.factor(ff2023$RookieContractYear)
+ff2023$FranchiseTag <- as.factor(ff2023$FranchiseTag)
+```
+
+Imputing Rush Yds Odds
+
+```{r message=FALSE, warning = FALSE}
+ff2023 <- ff2023 %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2023 & is.na(Most_RushYds_Odds), 16000, Most_RushYds_Odds))
+```
+
+Rookie/Non-Rookie Split
+
+```{r}
+rookies2023 <- ff2023[(ff2023$YearsPro == 1),]
+non.rookies2023 <- ff2023[(ff2023$YearsPro != 1),]
+```
+
+#### Non-Rookie Predictions
+
+```{r message = FALSE, warning = FALSE}
+ff2023_reg <- non.rookies2023 %>%
+  dplyr::select(-c(PlayerName, Team, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Year))
+
+finaltestdat <- non.rookies %>%
+  dplyr::select(-c(PlayerName, Team, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Year, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD))
+
+set.seed(5)
+pcr.fit <- pcr(Fantasy_Points_Half_PPR ~ ., data = finaltestdat, scale = TRUE, validation = "CV")
+
+pcr.pred <- predict(pcr.fit, ff2023_reg, ncomp = 5)
+
+```
+
+Partial Least Squares
+
+```{r}
+set.seed(5)
+pls.fit <- plsr(Fantasy_Points_Half_PPR ~., data= finaltestdat, scale = TRUE, validation= "CV")
+
+pls.pred <- predict(pls.fit, ff2023_reg, ncomp = 2)
+```
+
+Decision Tree / Random Forest
+
+```{r}
+#Random Forest
+set.seed(5)
+ff.rf <- randomForest(Fantasy_Points_Half_PPR ~ ., data = finaltestdat, mtry = 21, importance = TRUE) #
+
+rf.pred <- predict(ff.rf, newdata = ff2023_reg)
+
+#Gradient Boosted
+set.seed(5)
+ff.boost <- gbm(Fantasy_Points_Half_PPR ~ ., data = finaltestdat, distribution = "gaussian", n.trees = 500, interaction.depth = 4, shrinkage = 0.01, verbose = F)
+
+boost.pred <- predict(ff.boost, newdata = ff2023_reg, n.trees = 500)
+```
+
+```{r warning = FALSE, message= FALSE}
+nr23 <- data.frame(non.rookies2023, rf.pred, boost.pred, pcr.pred, pls.pred)
+View(nr23[c(2,71:75)])
+write.csv(nr23, "Non-Rookie Predictions 2023.csv")
+```
+
+#### Rookie Predictions
+
+```{r}
+ff2023_rook_reg <- rookies2023 %>%
+  dplyr::select(-c(PlayerName, Year, Team, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))
+
+finalrookietestdat <- rookies %>%
+  dplyr::select(-c(PlayerName, Year, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))
+```
+
+MLR, PCA, PLS
+
+```{r}
+rookie_lm <- lm(Fantasy_Points_Half_PPR^0.5 ~ IA_RBCapNum + sqrt(PPR_ADP) + FirstYearOnTeam + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = finalrookietestdat)
+
+mlr.pred <- predict(rookie_lm, ff2023_rook_reg)
+mlr.pred <- mlr.pred^2
+
+
+set.seed(5)
+pcr.fit <- pcr(Fantasy_Points_Half_PPR ~ ., data = finalrookietestdat, scale = TRUE, validation = "CV")
+
+pcr.pred <- predict(pcr.fit, ff2023_rook_reg, ncomp = 1)
+
+
+set.seed(5)
+pls.fit <- plsr(Fantasy_Points_Half_PPR ~., data= finalrookietestdat, scale = TRUE, validation= "CV")
+
+pls.pred <- predict(pls.fit, ff2023_rook_reg, ncomp = 1)
+```
+
+```{r warning = FALSE, message= FALSE}
+nr23.rook <- data.frame(rookies2023, mlr.pred, pcr.pred, pls.pred)
+View(nr23.rook[c(2,71:74)])
+write.csv(nr23.rook, "Rookie Predictions 2023.csv")
+```
