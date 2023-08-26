@@ -6,8 +6,6 @@ bookdown::gitbook:
         <li><a href="./">NFL RB Preds</a></li>
       after: |
         <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
-      toc: true
       toc_float:
-      collapsed: false
-      smooth_scroll: false
+        collapsed: false
       toc_depth: 4
