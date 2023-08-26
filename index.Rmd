@@ -1,9 +1,1220 @@
 --- 
-title: "YOUR TITLE HERE"
-author: "YOUR NAME HERE"
-date: "`r Sys.Date()`"
+title: "NFL RB Fantasy Football Performance Predictions"
+author: "Tyler Farr"
+date: "8/26/2023"
 site: bookdown::bookdown_site
 ---
 
-# Down the rabbit-hole
+# Running Back - Half-PPR Fantasy Points Prediction
 
+## Introduction
+
+**Objective**
+
+Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)
+
+I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed.
+
+**Background**
+
+Fantasy football is game in which regular people create their own team of football players from the NFL. You compete in a league of usually 8-12 teams and every year, individuals draft players to their team based on who they expect to score the most points that season.
+
+Consequentially, I was looking for a way to improve my draft strategy so that I could find high-value running backs in late rounds of my fantasy football draft - as well as avoiding drafting 'busts'. I will be using their fantasy football average draft position (ADP) as a reference point.
+
+*How are fantasy points calculated for running backs?*
+
+-   **Rushing Yards** = 1 point per 10 yards
+
+-   **Receiving Yards** = 1 point per 10 yards
+
+-   **Receptions** = 0.5 points per 1 reception
+
+-   **Rushing/Receiving Touchdown** = 6 points
+
+-   **Fumble** = -2 points
+
+Using the conversions above, I was able to calculate a running back's total fantasy points for the year.
+
+**Data**
+
+The data collected was from the 2012 to 2022 NFL seasons on running backs, mainly from Pro-Football-Reference for performance/game stats and OverTheCap/SporTrac for salary information. Please check the references section for the full list of sources.
+
+The 2023 season will be the test data set, which is a list of the top \~75 projected running backs for this season. The goal is to use only known data going in to the season, as opposed to the data we would find out at the end of the season, so I can predict player fantasy points at the beginning of the season & draft my team based off this prediction. 
+
+## Methodology/Data Prep
+
+Here are some of the libraries that I used to explore this project.
+
+```{r message = FALSE, warning = FALSE}
+library(tidyverse)
+library(bookdown)
+library(ggplot2)
+library(car)
+library(corrplot)
+library(Hmisc)
+library(plyr)
+library(readxl)
+library(caret)
+library(glmnet)
+library(nortest)
+library(MASS)
+library(pls)
+library(tree)
+library(randomForest)
+library(gbm)
+library(neuralnet)
+```
+
+Next, we load in the dataset
+
+```{r message = FALSE, warning = FALSE}
+full.rb.data <- read_excel("NFL Fantasy Football Predictive Model.xlsx")
+full.rb.data <- full.rb.data[1:79]
+```
+
+A quick note about the data - I chose to compile many different data sources into one file, so I found it easier to compile everything in Microsoft Excel first and then read into R.
+
+```{r message = FALSE, warning = FALSE, echo = FALSE}
+full.rb.data$Year <- as.factor(full.rb.data$Year)
+full.rb.data$Team <- as.factor(full.rb.data$Team)
+full.rb.data$FirstYearOnTeam <- as.factor(full.rb.data$FirstYearOnTeam)
+full.rb.data$AgeGT28 <- as.factor(full.rb.data$AgeGT28)
+full.rb.data$PrevGT1600 <- as.factor(full.rb.data$PrevGT1600)
+full.rb.data$PrevGT320 <- as.factor(full.rb.data$PrevGT320)
+full.rb.data$DraftRound <- as.factor(full.rb.data$DraftRound)
+full.rb.data$RookieContractYear <- as.factor(full.rb.data$RookieContractYear)
+full.rb.data$FranchiseTag <- as.factor(full.rb.data$FranchiseTag)
+```
+
+Here are the minimum specifications on running backs each year:
+
+-   Minimum 40 attempts per season
+
+-   Minimum 4 games played in a season
+
+-   Minimum 75 rush yards per season
+
+-   At least one snap in a season to count towards "Years Pro"
+
+-   'Rookie Contract Year' means players in the final year of their rookie contract (or 5th year option) + did not resign early or get traded to another team by the start of the season
+
+-   Above specifications are voided if BetMGM published odds for player to have the most rushing yards - then they are automatically included in the dataset. This helped account for some big injuries.
+
+**Missing Data**
+
+1.  For missing salary information from OverTheCap, I chose to replace it with salary information from SporTrac, the next closest source on salary information.
+
+2.  Any player without a provided Madden rating was imputed with the lowest level in the game, which is 60.
+
+3.  All players who did not have reported rushing odds at the beginning of their season were imputed with +1000 to the lowest reported odds player. For example, if the lowest player was +20000 to have the most rushing yards in a season, then every player who did not have reported odds for that specific season was +21000.
+
+As we can see in the histogram below, there was a clear right skew to the distribution of players and their odds
+
+```{r message = FALSE, warning = FALSE}
+hist(full.rb.data$Most_RushYds_Odds, main = "Histogram of Player Rush Yards Odds - Pre-Transformation", xlab = "BetMGM Regular Season Most Rushing Yards Odds")
+```
+
+```{r message = FALSE, warning = FALSE, echo= FALSE, include = FALSE}
+#Looking at Max Value, will add 1000 to max value to symbolize everyone who was NA by year
+print("Year 2012")
+summary(full.rb.data[full.rb.data$Year ==2012,]$Most_RushYds_Odds) #Max 8000
+print("Year 2013")
+summary(full.rb.data[full.rb.data$Year ==2013,]$Most_RushYds_Odds) #Max 6600
+print("Year 2014")
+summary(full.rb.data[full.rb.data$Year ==2014,]$Most_RushYds_Odds) #Max 8000
+print("Year 2015")
+summary(full.rb.data[full.rb.data$Year ==2015,]$Most_RushYds_Odds) #Max 25000
+print("Year 2016")
+summary(full.rb.data[full.rb.data$Year ==2016,]$Most_RushYds_Odds) #Max 30000
+print("Year 2017")
+summary(full.rb.data[full.rb.data$Year ==2017,]$Most_RushYds_Odds) #Max 30000
+print("Year 2018")
+summary(full.rb.data[full.rb.data$Year ==2018,]$Most_RushYds_Odds) #Max 20000
+print("Year 2019")
+summary(full.rb.data[full.rb.data$Year ==2019,]$Most_RushYds_Odds) #Max 20000
+print("Year 2020")
+summary(full.rb.data[full.rb.data$Year ==2020,]$Most_RushYds_Odds) #Max 10000
+print("Year 2021")
+summary(full.rb.data[full.rb.data$Year ==2021,]$Most_RushYds_Odds) #Max 50000
+print("Year 2022")
+summary(full.rb.data[full.rb.data$Year ==2022,]$Most_RushYds_Odds) #Max 20000
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2012 & is.na(Most_RushYds_Odds), 9000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2013 & is.na(Most_RushYds_Odds), 7600, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2014 & is.na(Most_RushYds_Odds), 9000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2015 & is.na(Most_RushYds_Odds), 26000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2016 & is.na(Most_RushYds_Odds), 31000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2017 & is.na(Most_RushYds_Odds), 31000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2018 & is.na(Most_RushYds_Odds), 21000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2019 & is.na(Most_RushYds_Odds), 21000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2020 & is.na(Most_RushYds_Odds), 11000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2021 & is.na(Most_RushYds_Odds), 51000, Most_RushYds_Odds))
+
+full.rb.data <- full.rb.data %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2022 & is.na(Most_RushYds_Odds), 21000, Most_RushYds_Odds))
+```
+
+After imputing, we see the histogram is still skewed, but more filled out now.
+
+```{r message = FALSE, warning = FALSE}
+hist(full.rb.data$Most_RushYds_Odds, main = "Histogram of Player Rush Yards Odds - Post-Transformation", xlab = "BetMGM Regular Season Most Rushing Yards Odds")
+```
+
+To call attention to which rows were imputed on this odds variable, I also created an "Imputed Rush Yards Odds" variable that is a 1 if it was imputed, and 0 otherwise. This will be seen later in the model creation as an interaction term.
+
+**Rookies**
+
+Lastly, a lot of the variables in the data set were based off of the running backs previous season performance, so for rookies, since they didn't have a previous NFL season, their values were imputed to 0. These rookies were split **into their own dataset** from the rest of the data as their 0's in previous seasons would have skewed our results.
+
+We see that there are 161 rookies and 719 non-rookies through 2012 to 2022. We will filter them into their own dataset as such.
+
+```{r message = FALSE, warning = FALSE}
+rookies <- full.rb.data[(full.rb.data$YearsPro == 1),]
+non.rookies <- full.rb.data[(full.rb.data$YearsPro != 1),]
+```
+
+```{r message = FALSE, warning = FALSE, echo = FALSE}
+rook.check <- data.frame(Rookies = c(nrow(rookies)), Non.Rookies = c(nrow(non.rookies)))
+rook.check
+```
+
+**Reading in the Test Data**
+
+Here, we read in the test data, which will be used for predicting 2023 players. This is as of 8/16/2023 - the day of my fantasy football draft. We go through and apply the same transformations as we did to the train set.
+
+```{r message = FALSE, warning= FALSE}
+ff2023 <- read_excel("2023 Predictions.xlsx")
+```
+
+```{r message = FALSE, warning = FALSE, echo = FALSE}
+ff2023$Year <- as.factor(ff2023$Year)
+ff2023$Team <- as.factor(ff2023$Team)
+ff2023$FirstYearOnTeam <- as.factor(ff2023$FirstYearOnTeam)
+ff2023$AgeGT28 <- as.factor(ff2023$AgeGT28)
+ff2023$PrevGT1600 <- as.factor(ff2023$PrevGT1600)
+ff2023$PrevGT320 <- as.factor(ff2023$PrevGT320)
+ff2023$DraftRound <- as.factor(ff2023$DraftRound)
+ff2023$RookieContractYear <- as.factor(ff2023$RookieContractYear)
+ff2023$FranchiseTag <- as.factor(ff2023$FranchiseTag)
+```
+
+Imputing Rush Yds Odds for 2023 dataset (Max Odds is +15000)
+
+```{r message=FALSE, warning = FALSE}
+ff2023 <- ff2023 %>%
+  mutate(Most_RushYds_Odds = ifelse(Year == 2023 & is.na(Most_RushYds_Odds), 16000, Most_RushYds_Odds))
+```
+
+Rookie/Non-Rookie Split for 2023 dataset
+
+```{r message = FALSE, warning = FALSE}
+rookies2023 <- ff2023[(ff2023$YearsPro == 1),]
+non.rookies2023 <- ff2023[(ff2023$YearsPro != 1),]
+```
+
+Before exploring the data, I did a train/test split of the 2012-2022 data. I chose to take 80% of the data to train on, as I believe there is not as much variability year to year. I also made sure to stratify by year so there wasn't any over/under representation from a specific year.
+
+There are 2 separate splits, one for non-rookies and one for rookies.
+
+-   *Non-Rookies*
+
+```{r message = FALSE, warning = FALSE}
+set.seed(5)
+train.index <- createDataPartition(non.rookies$Year, p = 0.80, list = FALSE)
+train <- non.rookies[train.index,]
+test <- non.rookies[-train.index,]
+```
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+paste("Non-Rookie Train Data - Rows:", nrow(train))
+paste("Non-Rookie Test Data - Rows:", nrow(test))
+```
+
+-   *Rookies*
+
+```{r message = FALSE, warning = FALSE}
+set.seed(5)
+train.index2 <- createDataPartition(rookies$Year, p = 0.80, list = FALSE)
+train2 <- rookies[train.index2,]
+test2 <- rookies[-train.index2,]
+```
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+paste("Rookie Train Data - Rows:", nrow(train2))
+paste("Rookie Test Data - Rows:", nrow(test2))
+```
+
+## Exploratory Data Analysis (EDA)
+
+Here, we will dive a little deeper into some of the variable relationships in the training data before we build the model.
+
+### Non-Rookies
+
+We start by looking at a correlation matrix of variables in the model (not including previous season performance variables - that will be done separately). We see some obviously strong correlations, like CapNum and CashSpent, which are both salary information for players. There's also a very strong relationship between a player's Madden rating and their average draft position (ADP). This makes sense as highly rated players will be drafted higher.
+
+In terms of the target variable - Half PPR Fantasy Points - we see some variables with noticeable relationships, like RB salary information, where they were drafted in the NFL, fantasy average draft position, their Madden rating, and very slightly their height.
+
+```{r warning= FALSE, message = FALSE}
+corrs.int <- train[c(4,12,13,15,18,19, 60,61,64,65,73,77:79)]
+
+res <- cor(corrs.int)
+
+corrplot::corrplot(res,type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, title = "Correlation Matrix on NFL Running Back Data (2012-2022)", mar=c(0,0,1,0))
+```
+
+Next, the target variable was explored in relation to previous season data. I used a function I found online to flatten out the correlation matrix to pair relationships.
+
+There are some obvious strong correlations like previous targets & previous receptions - or if an RB has a lot of red zone carries inside the 20, they are likely to have a lot of red zone carries inside the 10. I will mention this multicollinearity concern later in the report.
+
+Some of the previous-season variables that have a noticeable relationship with half-PPR fantasy points are rush yards per game, total rush touchdowns, attempts per game, rush yards per season, total first down rushes, receptions per game, and red zone carries inside the 20 and 10.
+
+```{r warning= FALSE, message = FALSE}
+
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix - flattens out correlations to 2x2
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+flattenCorrMatrix <- function(cormat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut]
+    )
+}
+
+prev.corrs <- train[c(20:57, 79)]
+res2<-rcorr(as.matrix(prev.corrs))
+previous.correlations <- flattenCorrMatrix(res2$r)
+
+head(arrange(previous.correlations, desc(cor)),20)
+```
+
+**Visual Explorations**
+
+```{r warning= FALSE, message = FALSE, echo = FALSE, include= FALSE}
+ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = FirstYearOnTeam)) +
+  stat_qq()+
+  stat_qq_line()
+
+wilcox.test(Fantasy_Points_Half_PPR ~ FirstYearOnTeam, alternative = 'greater', data = train) #sig diff b/w two
+```
+
+I was interested to see if a player's first year on a new team would affect their fantasy performance. In the box plot below, we see there is a significant difference. In fact, a running back has significantly higher half-PPR fantasy points staying on the same team rather than their first year on a new team.
+
+```{r warning = FALSE, message= FALSE, echo = FALSE}
+ggplot(data = train, aes(x = FirstYearOnTeam, y = Fantasy_Points_Half_PPR)) +
+  geom_boxplot(fill = "orange", alpha = 0.2) + 
+  labs(x = "First Year On Team", y = "Half-PPR Fantasy Points", title = "Boxplot of Half-PPR Fantasy Points vs. RB First Year on Team \n(2012-2022)") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r warning= FALSE, message = FALSE, echo = FALSE, include = FALSE}
+ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = factor(Prev40Runs))) +
+  stat_qq()+
+  stat_qq_line()
+
+kruskal.test(Fantasy_Points_Half_PPR ~ factor(Prev40Runs), data = train) #sig diff b/w at least one category exists
+
+prev40aov <- aov(Fantasy_Points_Half_PPR ~ factor(Prev40Runs), data = train)
+TukeyHSD(prev40aov)
+```
+
+Next, "boom" or "bust" running backs are typically those with 'big play ability.' Those can be explored by 40+ yard runs in the previous season. The boxplots below show there is a statistically significant difference in the average half-PPR fantasy points in at least one of the groups. Upon further inspection, we see this significant difference lies in a difference between 0 and 2 and 0 and 3. There is a generally increasing trend in the boxplots as well, so it is likely that there is a relationship between the number of 40+ yard runs and a running back's fantasy production.
+
+```{r warning= FALSE, message = FALSE}
+ggplot(data = train, aes(x = factor(Prev40Runs), y = Fantasy_Points_Half_PPR)) +
+  geom_boxplot(fill = "orange", alpha = 0.2) + 
+  labs(x = "Prev 40+ Yard Runs", y = "Half-PPR Fantasy Points", title = "Boxplot of Half-PPR Fantasy Points vs. Previous 40+ Yard Runs \n(2012-2022)") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r message = FALSE, warning = FALSE, echo = FALSE, include = FALSE}
+plot(lm(Fantasy_Points_Half_PPR ~ PPR_ADP, data = train),1)
+plot(lm(Fantasy_Points_Half_PPR ~ PPR_ADP, data = train),2)
+
+cor.test(train$PPR_ADP, train$Fantasy_Points_Half_PPR, method = 'spearman') #diff from 0
+```
+
+It is intuitive that there is a relationship between a player's average fantasy draft position at the beginning of the season and their corresponding fantasy performance. Players taken first overall in a fantasy draft are 1.0, while those taken last are in 150-300 range.
+
+This scatterplot supports this theory, with a clear cone shape relationship. It appears that there is a lot more variability in for fantasy points for lower PPR average draft positions, while higher ADP's tend to have smaller variability and lower total fantasy points. It was also confirmed statistically that the correlation does not equal 0 here.
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+ggplot(data = train, aes(x = PPR_ADP, y = Fantasy_Points_Half_PPR)) +
+  geom_point(color = "orange") +
+  labs(x = "Average Draft Position (ADP), PPR Format", y = "Half-PPR Fantasy Points", title = "Scatterplot of Half-PPR Fantasy Points vs. PPR ADP \n(2012-2022)") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r warning= FALSE, message = FALSE, warning = FALSE, include = FALSE}
+ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = PrevGT1600)) +
+  stat_qq()+
+  stat_qq_line()
+
+wilcox.test(Fantasy_Points_Half_PPR ~ PrevGT1600, alternative = 'less', data = train) #sig lower for 0
+```
+
+In the boxplot below, we see there is a clear, statistically significant difference in average half-PPR fantasy points between players who ran 1600+ yards in a season and those who did not. In fact, those who did run 1600+ yards are statistically greater than not in terms of average half-PPR fantasy points.
+
+I would like to point out the variability on players who ran for 1600+ yards in a previous season is much smaller than the variability of players who did not. Generally speaking, running backs who have 1600+ yards in a season usually average a high number of half-PPR fantasy points (\~300 points), so I think this more importantly highlights that they do take a steep drop in production the following season as the box hovers around low 200 points.
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+ggplot(data = train, aes(x = PrevGT1600, Fantasy_Points_Half_PPR)) +
+  geom_boxplot(fill = "orange", alpha = 0.2) +
+    labs(x = "Prev 1600+ Rush Yards", y = "Half-PPR Fantasy Points", title = "Boxplot of Half-PPR Fantasy Points vs. Previous 1600+ Rushing Yards \n(2012-2022)") +
+  theme_classic() +
+  coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r warning= FALSE, message = FALSE, echo = FALSE, include = FALSE}
+ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = FranchiseTag)) +
+  stat_qq()+
+  stat_qq_line()
+
+wilcox.test(Fantasy_Points_Half_PPR ~ FranchiseTag, alternative = 'less', data = train) #sig lower for 0
+```
+
+Franchise tagged players arise out of contract disputes for running backs, where a team can keep a player on their roster for 1 year at a pre-determined salary while they have another year to figure out the contract. This boxplot examines players on a franchise tag for a year and how they perform vs players who are not on a franchise tag. Those not on a franchise tag perform significantly worse than those who are on a franchise tag in terms of average half-PPR fantasy points.
+
+It's quite interesting to see how well franchise tagged players alone perform and how tight the variability is on the boxplot.
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+ggplot(data = train, aes(x = FranchiseTag, Fantasy_Points_Half_PPR)) + geom_boxplot(fill = "orange", alpha = 0.2) +
+    labs(x = "Franchise Tag", y = "Half-PPR Fantasy Points", title = "Boxplot of Half-PPR Fantasy Points vs. Franchise Tag \n(2012-2022)") +
+  theme_classic() +
+  coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r warning = FALSE, message= FALSE, echo = FALSE, include = FALSE}
+plot(lm(Fantasy_Points_Half_PPR ~ Madden_Rating, data = train),1)
+plot(lm(Fantasy_Points_Half_PPR ~ Madden_Rating, data = train),2)
+
+cor.test(train$Madden_Rating, train$Fantasy_Points_Half_PPR, method = 'spearman') #diff from 0
+```
+
+The Madden video game provides player rankings from 60-99, with 99 overall players being the best. Although the rankings can be subject to subjectivity, I find that they are generally solid representations of player ability. In the scatterplot below, it appears there is a positive relationship between a running back's half-PPR fantasy points and their Madden rating. This was confirmed statistically to have a correlation different from 0.
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+ggplot(data = train, aes(x = Madden_Rating, Fantasy_Points_Half_PPR)) + geom_point(color = "orange") +
+  labs(x = "RB Madden Rating", y = "Half-PPR Fantasy Points", title = "Scatterplot of Half-PPR Fantasy Points vs. Madden Rating \n(2012-2022)") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r warning= FALSE, message = FALSE, echo = FALSE, include = FALSE}
+ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = DraftRound)) +
+  stat_qq()+
+  stat_qq_line()
+
+kruskal.test(Fantasy_Points_Half_PPR ~ DraftRound, data = train) #sig diff b/w at least one category exists
+
+draftRoundaov <- aov(Fantasy_Points_Half_PPR ~ DraftRound, data = train)
+TukeyHSD(draftRoundaov)
+```
+
+In this final boxplot, we are examining what round a running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. It appears there is an expected generally decreasing trend, as higher scoring players are taken in the higher rounds.
+
+Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 4,5, and 6 have a clear statistical difference between round 2. We also see undrafted free-agents (UDFA) have a statistical difference between rounds 1,2, and 3 players.
+
+While there are some exceptions of UDFA players who have been elite running backs (ie: Austin Ekeler), they are generally one of the lower performing half-PPR draft rounds, as expected.
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+ggplot(data = train, aes(x = DraftRound, Fantasy_Points_Half_PPR)) + 
+  geom_boxplot(fill = "orange", alpha = 0.2) +
+    labs(x = "NFL Draft Round", y = "Half-PPR Fantasy Points", title = "Boxplot of Half-PPR Fantasy Points vs. NFL Draft Round \n(2012-2022)") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+### Rookies
+
+```{r message = FALSE, warning = FALSE, echo = FALSE, include = FALSE}
+plot(lm(Fantasy_Points_Half_PPR ~ PPR_ADP, data = train2),1)
+plot(lm(Fantasy_Points_Half_PPR ~ PPR_ADP, data = train2),2)
+
+cor.test(train2$PPR_ADP, train2$Fantasy_Points_Half_PPR, method = 'spearman') #diff from 0
+```
+
+Likewise for rookies, it is intuitive that there is a relationship between a player's average fantasy draft position at the beginning of the season and their corresponding fantasy performance. Players taken first overall in a fantasy draft are 1.0, while those taken last are in 150-300 range.
+
+This scatterplot supports this theory, with a similar cone shape relationship. It appears that there is more variability in fantasy points for lower PPR average draft positions, while higher ADP's tend to have smaller variability and lower total fantasy points. It was also confirmed statistically that the correlation does not equal 0 here.
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+ggplot(data = train2, aes(x = PPR_ADP, y = Fantasy_Points_Half_PPR)) +
+  geom_point(color = "blue") +
+  labs(x = "Average Draft Position (ADP), PPR Format", y = "Half-PPR Fantasy Points", title = "Scatterplot of Half-PPR Fantasy Points vs. PPR ADP \n(2012-2022) - Rookies") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r warning = FALSE, message= FALSE, echo = FALSE, include = FALSE}
+plot(lm(Fantasy_Points_Half_PPR ~ Madden_Rating, data = train2),1)
+plot(lm(Fantasy_Points_Half_PPR ~ Madden_Rating, data = train2),2)
+
+cor.test(train2$Madden_Rating, train2$Fantasy_Points_Half_PPR, method = 'spearman') #diff from 0
+```
+
+Once again looking at Madden rankings for rookies, the scatterplot below highlights a relatively positive relationship between a running back's half-PPR fantasy points and their Madden rating. This was confirmed statistically to have a correlation different from 0.
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+ggplot(data = train2, aes(x = Madden_Rating, Fantasy_Points_Half_PPR)) + geom_point(color = "blue") +
+  labs(x = "RB Madden Rating", y = "Half-PPR Fantasy Points", title = "Scatterplot of Half-PPR Fantasy Points vs. Madden Rating \n(2012-2022) - Rookies") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r warning= FALSE, message = FALSE, echo = FALSE, include = FALSE}
+ggplot(data = train2, aes(sample = Fantasy_Points_Half_PPR, color = DraftRound)) +
+  stat_qq()+
+  stat_qq_line()
+
+kruskal.test(Fantasy_Points_Half_PPR ~ DraftRound, data = train2) #sig diff b/w at least one category exists
+
+draftRoundaov <- aov(Fantasy_Points_Half_PPR ~ DraftRound, data = train2)
+TukeyHSD(draftRoundaov)
+```
+
+In this final boxplot, we are examining what round a rookie running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. It appears there is a stronger, decreasing trend, as rookies drafted in the early rounds (especially the first) have a much higher chance of coming in to a situation as the clear-cut starter, not having to compete for playing time.
+
+Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 2,3,4,5,6,and 7 have a clear statistical difference between round 1. We also see undrafted free-agents (UDFA) have a statistical difference between rounds 1 and 2 players. This makes sense because UDFA rookie running backs will get very little playing time compared to a first round back.
+
+```{r warning= FALSE, message = FALSE, echo = FALSE}
+ggplot(data = train2, aes(x = DraftRound, Fantasy_Points_Half_PPR)) + 
+  geom_boxplot(fill = "blue", alpha = 0.2) +
+    labs(x = "NFL Draft Round", y = "Half-PPR Fantasy Points", title = "Boxplot of Half-PPR Fantasy Points vs. NFL Draft Round \n(2012-2022) - Rookies") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+-   All of the above tests were confirmed statistically by a Wilcox and Kruskal-Wallis non-parametric test, or Spearman's correlation.
+
+## Modeling
+
+As mentioned above, two separate data sets were created for the rookies and non-rookies. Therefore, they will have 2 separate models as well.
+
+A conservative alpha level of 0.025, instead of 0.05, was chosen for model significance testing since there are many observations in the data set and we need to adjust it to reflect a higher sample size.
+
+However, during the model selection process to filter out insignificant variables, an alpha level of 0.10 was chosen to include more leeway in evaluating the variables.
+
+To reduce multicollinearity, scaled values such as previous yards per attempt, 40+ yard rushes per attempt, or receiving yards per game were removed from the model. I chose to stick with unscaled values such as total season rushing yards, receiving yards, number of 40+ yard runs, etc.
+
+Additionally, NFL Draft position, previous season rushing yards, previous total receptions & receiving yards, and previous red zone rushing attempts inside the 10 were all removed from the model for high multicollinearity.
+
+```{r message = FALSE, warning = FALSE, echo = FALSE, include=FALSE}
+#removing any variables that won't be used in analysis, cap numbers have inflation adjusted alternatives
+mc.check <- lm(Fantasy_Points_Half_PPR ~. - PlayerName - Team - Att - RushYds - RushTD - Fumble - Rec - RecYds - RecTD - RBCapNumber - RBCashSpent - OL_CapNum - OL_CashSpent - QB_CapNum - QB_CashSpent
+            #variables that have an unscaled alternative, so they are removed
+      -Prev_Yds_Per_Att - Prev_Rush_Yds_Per_Game - Prev_Att_Per_Game - Prev_1DRush_Per_Att - Prev20PerAtt - Prev40PerAtt -Prev_AttPerFum - Prev_RushTDPerAtt - PrevRecPerAtt - PrevCatchPerc - Prev_Yds_Per_Rec - Prev_Yds_Per_Tgt - Prev_Rec_Per_Game - Prev_RecYds_Per_Game - Prev_Tgt_Per_Game - 
+        Prev_RecTD_Per_Rec - Prev_1DRec_Per_Rec 
+      #variables identified as M.C.
+-DraftNum - Prev_RushYds - PrevRec - Prev_RZ_RushAtt_Ins10_Perc - Prev_Rec_Yds, data = train)
+
+            
+vif(mc.check)
+```
+
+### Non-Rookies
+
+We start by looking at the non-rookies model. I created a subset of the train and test datasets of only the variables I want to look at.
+
+```{r message = FALSE, warning = FALSE}
+train_reg2 <- train %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds))
+
+test_reg2 <- test %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds))
+
+test_y2 <- test_reg2$Fantasy_Points_Half_PPR
+
+```
+
+Model selection resulted in the following recommended model:
+
+Fantasy_Points_Half_PPR \~ Madden_Rating + FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + PrevGT320 + Height_in + IA_OLCashSpent + YearsPro + Prev_1D_Rec + Prev_Lng_Rec + PrevGT1600 + FranchiseTag
+
+I did notice in outlier testing that Adrian Peterson's 2014 season was a complete outlier. He was suspended and despite being a projected top fantasy running back - only played in 1 game. He was removed from the dataset for that season.
+
+```{r message = FALSE, warning = FALSE}
+train_reg2 <- train_reg2[-c(153),]
+```
+
+#### Linear Regression
+
+For a linear regression model, I decided to make 2 models. One that focuses on producing the highest R-Squared, and one that produces the lowest AIC. Both resulted in different models.
+
+For the R-squared model, it was able to explain 37.7% of the variation in half-PPR fantasy points given the following variables:
+
+-   Madden Rating
+
+-   FirstYearOnTeam *(1 for yes, 0 for no)*
+
+-   IA_RBCashSpent *(inflation adjusted salary incentives)*
+
+-   PPR_ADP *(average draft position, PPR formats)*
+
+-   PrevGT320 *(320 carries in previous season- 1 for yes, 0 for no)*
+
+-   Height_in *(inches)*
+
+-   Prev_1D_Rec *(total first down receptions in previous season)*
+
+-   Prev_Lng_Rec *(longest reception in previous season)*
+
+-   Most_RushYds_Odds *(BetMGM rushing yards odds before season starts)*
+
+-   ImputedOddsRushYds *(1 if imputed, 0 if provided by BetMGM)*
+
+We could argue from the diagnostic plots below that the model meets the assumptions of linear regression.
+
+```{r message = FALSE, warning = FALSE}
+final.mod3 <- lm(Fantasy_Points_Half_PPR ~ Madden_Rating + I(Madden_Rating^2) + FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + I(PPR_ADP^2)+ PrevGT320 + Height_in + Prev_1D_Rec + I(Prev_1D_Rec^2)+ Prev_Lng_Rec + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = train_reg2)
+
+#summary(final.mod3)
+plot(final.mod3,1)
+plot(final.mod3,2)
+```
+
+```{r message = FALSE, warning = FALSE, include = FALSE}
+#Linearity of the Mean + Equal Variance of the Residuals
+ggplot(final.mod3, aes(x = fitted.values(final.mod3), y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #apparent heteroskedasticity
+
+#testing equal variance b/c graph looks slightly heteroskedastic
+cor.test(abs(resid(final.mod3)), fitted.values(final.mod3), method = 'spearman', exact= F) #states we reject the null, so it's heteroskedastic
+
+###############################################################################
+########## Identifying Specific Variables for Pattern in Random Errors ############
+###################################################################################
+
+#ggplot(final.mod3, aes(x =Age, y = resid(final.mod3))) + 
+ # geom_point() +
+#  geom_hline(yintercept= 0) #looks fairly balanced, maybe slightly quadratic?
+
+ggplot(final.mod3, aes(x =Height_in, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #looks fairly balanced, maybe slightly quadratic?
+
+ggplot(final.mod3, aes(x =IA_RBCashSpent, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #looks bunched up close to 0, but nice band across
+
+#ggplot(final.mod3, aes(x =YearsPro, y = resid(final.mod3))) + 
+ # geom_point() +
+  #geom_hline(yintercept= 0) #looks good
+
+#ggplot(final.mod3, aes(x =IA_OLCashSpent, y = resid(final.mod3))) + 
+ # geom_point() +
+  #geom_hline(yintercept= 0) #balanced
+
+ggplot(final.mod3, aes(x =Madden_Rating, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #close, slight reverse cone shape
+  
+#ggplot(final.mod3, aes(x =PPR_ADP, y = resid(final.mod3))) + 
+##  geom_point() +
+ # geom_hline(yintercept= 0) #looks bunched up close to 0, cone shaped throughout
+
+ggplot(final.mod3, aes(x =Most_RushYds_Odds, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #heavy in areas of imputation
+
+#ggplot(final.mod3, aes(x =Prev_GP, y = resid(final.mod3))) + 
+#  geom_point() +
+#  geom_hline(yintercept= 0) #higher variability in playing full games
+
+ggplot(final.mod3, aes(x =Prev_1D_Rec, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #fine
+
+ggplot(final.mod3, aes(x =Prev_Lng_Rec, y = resid(final.mod3))) + 
+  geom_point() +
+  geom_hline(yintercept= 0) #fine
+
+#ggplot(final.mod3, aes(x =Prev_Team_Offense_SRS, y = resid(final.mod3))) + 
+#  geom_point() +
+ # geom_hline(yintercept= 0) #fine
+
+#ggplot(final.mod3, aes(x =Prev_RZ_RushAtt_Ins20_Perc, y = resid(final.mod3))) + 
+ # geom_point() +
+ # geom_hline(yintercept= 0) #not bad
+
+#ggplot(final.mod3, aes(x =Prev40Runs, y = resid(final.mod3))) + 
+ # geom_point() +
+ # geom_hline(yintercept= 0) #fine
+
+#ggplot(final.mod3, aes(x= Team_Preseason_Odds, y = resid(final.mod3))) +
+ # geom_point() +
+ # geom_hline(yintercept = 0) #heteroskedastic, pulled by 2 main points
+
+####boxplots
+ggplot(final.mod3, aes(x =PrevGT320, y = resid(final.mod3))) + 
+  geom_boxplot() #clear difference
+
+#ggplot(final.mod3, aes(x =PrevGT1600, y = resid(final.mod3))) + 
+ # geom_boxplot() #slight difference
+
+ggplot(final.mod3, aes(x =FirstYearOnTeam, y = resid(final.mod3))) + 
+  geom_boxplot() #don't see a difference
+
+#ggplot(final.mod3, aes(x =FranchiseTag, y = resid(final.mod3))) + 
+ # geom_boxplot() #slight differencenot bad
+
+#ggplot(final.mod3, aes(x =RookieContractYear, y = resid(final.mod3))) + 
+ # geom_boxplot() #wide variability
+
+hist(resid(final.mod3))
+
+qqnorm(resid(final.mod3))
+qqline(resid(final.mod3))
+
+ad.test(resid(final.mod3))
+shapiro.test(resid(final.mod3)) #both have their flaws, but both reject - Not Normal
+
+boxcox(final.mod3)
+```
+
+For the AIC focused model, we applied a Box Cox transformation to the Y variable, which is the only difference between the R-squared and AIC focused models. We could once again argue from the diagnostic plots below that the model meets the assumptions of linear regression.
+
+```{r message = FALSE, warning = FALSE}
+final.mod4 <- lm(Fantasy_Points_Half_PPR^0.5 ~ Madden_Rating + FirstYearOnTeam + IA_RBCashSpent + PPR_ADP + I(PPR_ADP^2)+ PrevGT320 + Height_in + Prev_1D_Rec + Prev_Lng_Rec + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = train_reg2)
+
+
+#AIC(final.mod4)
+#summary(final.mod4)
+plot(final.mod4,1)
+plot(final.mod4,2)
+
+```
+
+```{r message = FALSE, warning = FALSE, include = FALSE}
+hist(resid(final.mod4))
+qqnorm(resid(final.mod4))
+qqline(resid(final.mod4))
+
+ad.test(resid(final.mod4))
+shapiro.test(resid(final.mod4)) #both have their flaws, but both reject - Not Normal
+
+boxcox(final.mod4)
+```
+
+#### Principle Component Regression
+
+Since I had many variables that were very similar/collinear to each other, aggregating them into principle components seemed to be effective for capturing the most amount of variance between different groups of variables.
+
+I chose to keep most of the variables in the model, only removing a limited number that aren't relevant to the analysis, like the player's name or the non-inflation adjusted salary information. From this, I split the dataset into a train and test matrix to proceed with PCA.
+
+```{r message = FALSE, warning = FALSE}
+train_reg3 <- train %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent,Year))
+
+test_reg3 <- test %>%
+  dplyr::select(-c(PlayerName, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent,Year))
+
+train_reg3 <- train_reg3[-c(153),] #removes Adrian Peterson 2014 outlier year
+
+train_x3 <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = train_reg3)[, -1]
+train_y3 <- train_reg3$Fantasy_Points_Half_PPR
+test_x3 <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = test_reg3)[, -1]
+test_y3 <- test_reg3$Fantasy_Points_Half_PPR
+```
+
+From the results of the validation plot, it appears an "elbow" exists right around 1 or 5 components, so I will test both to see which will provide the lowest error.
+
+```{r warning = FALSE, message = FALSE}
+set.seed(5)
+pcr.fit <- pcr(Fantasy_Points_Half_PPR ~ ., data = train_reg3, scale = TRUE, validation = "CV")
+
+validationplot(pcr.fit, val.type = "MSEP")
+```
+
+#### Partial Least Squares
+
+Using the same training/test dataset from PCA, I will attempt to use Partial Least Squares method as well - another dimension reduction method since I have many variables that are correlated with each other.
+
+From the results of the validation plot, there is a clear "elbow" or dip at 2 components, so I will use that for the final PLS model.
+
+```{r warning = FALSE, message= FALSE}
+set.seed(5)
+pls.fit <- plsr(Fantasy_Points_Half_PPR ~., data= train_reg3, scale = TRUE, validation= "CV")
+
+validationplot(pls.fit, val.type = "MSEP")
+```
+
+#### Decision Tree / Random Forest
+
+I started with a decision tree to see if pursuing more complicated machine learning models was even worth it.
+
+```{r warning = FALSE, message= FALSE}
+#Decision Tree
+set.seed(5)
+
+tree.ff <- tree(Fantasy_Points_Half_PPR ~ ., data = train_reg3)
+```
+
+From here, I also created a random forest model. I set mtry to 21, as we typically use the number of predictors (63) divided by three.
+
+```{r warning=FALSE, message=FALSE}
+#Random Forest
+set.seed(5) #rows of data/3 = mtry
+ff.rf <- randomForest(Fantasy_Points_Half_PPR ~ ., data = train_reg3, mtry = 21, importance = TRUE) 
+```
+
+#### Gradient Boost
+
+A gradient boosted model is also tested here. The partial dependence plot of PPR_ADP shows that as ADP increases, half-PPR fantasy points is decreasing.
+
+```{r warning = FALSE, message= FALSE}
+#Gradient Boosted
+set.seed(5)
+ff.boost <- gbm(Fantasy_Points_Half_PPR ~ ., data = train_reg3, distribution = "gaussian", n.trees = 500, interaction.depth = 4, shrinkage = 0.01, verbose = F)
+
+plot(ff.boost, i = "PPR_ADP")
+```
+
+### Rookies
+
+For rookies, a similar modeling process was conducted. I first had to subset the training dataset to not include any of the previous season variables, as rookies do not have any previous NFL season data since they were in college. Modeling them separately seemed like the most effective method.
+
+```{r message = FALSE, warning = FALSE}
+train_rook_reg <- train2 %>%
+  dplyr::select(-c(PlayerName, Year, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))
+
+test_rook_reg <- test2 %>%
+  dplyr::select(-c(PlayerName, Year, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))
+
+```
+
+Since there were less variables in the rookie model, I did not feel a need to perform model selection here.
+
+#### Linear Regression
+
+For a linear regression model, I did not have to decide between models this time because the assumptions of linear regression were not completely met without transforming the dependent variable.
+
+The final model is able to explain 41.79% of the variation in half-PPR fantasy points given the following variables:
+
+-   FirstYearOnTeam *(1 for yes, 0 for no)*
+
+-   IA_RBCapNum *(inflation adjusted salary relative to team salary cap)*
+
+-   PPR_ADP *(average draft position, PPR formats)*
+
+-   Most_RushYds_Odds *(BetMGM rushing yards odds before season starts)*
+
+-   ImputedOddsRushYds *(1 if imputed, 0 if provided by BetMGM)*
+
+It's interesting how the variables selected between rookies and non-rookies is similar, yet different. Looking at the diagnostic plots, the Q-Q plot is the biggest question mark, however a histogram of the residuals appears to be relatively Normal so I chose to let it pass the assumption. 
+
+```{r warning = FALSE, message = FALSE}
+rookie_lm <- lm(Fantasy_Points_Half_PPR^0.5 ~ IA_RBCapNum + sqrt(PPR_ADP) + FirstYearOnTeam + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = train_rook_reg)
+
+#AIC(rookie_lm)
+#summary(rookie_lm)
+plot(rookie_lm,1)
+plot(rookie_lm,2)
+hist(resid(rookie_lm))
+```
+
+```{r warning = FALSE, message = FALSE, include = FALSE}
+ggplot(rookie_lm, aes(x = IA_RBCapNum, y = resid(rookie_lm))) + 
+  geom_point(color = "orange") +
+  geom_hline(yintercept = 0)
+
+#ggplot(rookie_lm, aes(x = PPR_ADP, y = resid(rookie_lm))) + 
+ #geom_point(color = "orange") +
+ # geom_hline(yintercept = 0)
+
+ggplot(rookie_lm, aes(x = Most_RushYds_Odds, y = resid(rookie_lm))) + 
+  geom_point(color = "orange") +
+  geom_hline(yintercept = 0)
+
+hist(resid(rookie_lm))
+
+ad.test(resid(rookie_lm))
+shapiro.test(resid(rookie_lm))
+
+boxcox(rookie_lm)
+```
+
+#### Principal Component Analysis
+
+Once again, a similar process was conducted for principle component analysis. We see the "elbow" in the validation plot occur at 1 component.
+
+```{r warning = FALSE, message = FALSE}
+train_x_rook <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg)[, -1]
+train_y_rook <- train_rook_reg$Fantasy_Points_Half_PPR
+test_x_rook <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = test_rook_reg)[, -1]
+test_y_rook <- test_rook_reg$Fantasy_Points_Half_PPR
+
+
+set.seed(5)
+pcr.fit.rook <- pcr(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg, scale = TRUE, validation = "CV")
+
+validationplot(pcr.fit.rook, val.type = "MSEP")
+```
+
+#### Partial Least Squares
+
+For partial least squares, we see 1 component creates the "elbow" in the validation plot, so that is what will be used in our model.
+
+```{r warning = FALSE, message = FALSE}
+set.seed(5)
+pls.fit.rook <- plsr(Fantasy_Points_Half_PPR ~., data= train_rook_reg, scale = TRUE, validation= "CV")
+
+validationplot(pls.fit.rook, val.type = "MSEP")
+```
+
+#### Decision Tree / Random Forest
+
+For this method, I worked through a decision tree and random forest again. I set mtry to 6, as we typically use the number of predictors (20) divided by three, rounded down.
+
+```{r warning = FALSE, message = FALSE}
+#Decision Tree
+set.seed(5)
+
+tree.ff.rook <- tree(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg)
+
+#Random Forest
+set.seed(5) #set mtry = p/3
+ff.rf.rook <- randomForest(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg, mtry = 6, importance = TRUE) 
+```
+
+#### Gradient Boost
+
+Lastly, we look at the gradient boosted model for the rookie analysis. I did include the partial dependence plot for PPR_ADP, as this is believed to be quite significant. We see that as ADP increases, the projected half-PPR fantasy points generally decreases.
+
+```{r warning = FALSE, message = FALSE}
+set.seed(5)
+ff.boost.rook <- gbm(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg, distribution = "gaussian", n.trees = 1000, interaction.depth = 4, shrinkage = 0.01, verbose = F)
+
+plot(ff.boost.rook, i = "PPR_ADP")
+```
+
+## Results
+
+I tested each model against Mean Square Error (MSE) to see which could provide the lowest MSE on the test dataset.
+
+### Non-Rookies
+
+Starting with the non-rookies, we see a table of each test and it's mean square error. The random forest provides the lowest mean square error of \~ 4,000, which is essentially +/- 60-65 half-PPR fantasy points. However, the gradient boost, PCA, and PLS models were not very far behind.
+
+The PCA model with 1 component was not included since it had a higher MSE than the 5 component PCA model.
+
+```{r warning = FALSE, message= FALSE, include = FALSE}
+# Linear Regression
+pred_lm3 <- predict(final.mod3, newdata = test_reg2) #linear model 3
+pred_lm4 <- predict(final.mod4, newdata = test_reg2) #linear model 4
+
+mean((pred_lm3-test_y2)^2) #unscaled, R-sq high
+#4330.715
+mean((pred_lm4^2-test_y2)^2) #unscaled, AIC --> squared pred to match apples to apples
+#4761.269
+
+#PCA
+pcr.pred <- predict(pcr.fit, test_x3, ncomp = 1)
+mean((pcr.pred - test_y3)^2) #4541.784
+
+pcr.pred <- predict(pcr.fit, test_x3, ncomp = 5)
+mean((pcr.pred - test_y3)^2) #4227.251
+
+#PLS
+pls.pred <- predict(pls.fit, test_x3, ncomp = 2)
+mean((pls.pred - test_y3)^2) #4248.735
+
+#Decision Tree
+tree.pred <- predict(tree.ff, newdata = test_reg3)
+mean((tree.pred - test_y3)^2) #4446.579
+
+#Random Forest
+rf.pred <- predict(ff.rf, newdata = test_reg3)
+mean((rf.pred - test_y3)^2) #4028.147
+
+#Gradient Boost
+boost.pred <- predict(ff.boost, newdata = test_reg3, n.trees = 500)
+mean((boost.pred - test_y3)^2) #4058.779
+```
+
+```{r warning = FALSE, message = FALSE, echo = FALSE}
+Model.Test.Non_Rookies = c("Random Forest", "Gradient Boost", "PCA, 5 comp", "PLS, 2 comp", "Linear Regression (R-sq)", "Linear Regression (AIC)")
+mse.nr.df <- data.frame("MSE" = c(4028.147, 4058.779, 4227.251, 4248.735, 4330.715, 4761.269))
+mse.nr.df <- cbind(Model.Test.Non_Rookies, mse.nr.df)
+
+mse.nr.df
+```
+
+### Rookies
+
+The MSE table below provides a look into the rookie models. As we can, the multipl linear regression model performed the best, with an MSE of \~2960, or about +/- 55 half-PPR fantasy points. However, the PCA, PLS, and Random Forest models were not very far behind.
+
+I'm not totally sure why the Decision Tree model performed so poorly, but it will not be used in predictions
+
+```{r warning = FALSE, message= FALSE, include = FALSE}
+# Linear Regression
+pred_lm_rookies <- predict(rookie_lm, newdata = test_rook_reg) #linear model1
+
+mean((pred_lm_rookies^2 - test_y_rook)^2) #squared predictions b/c of y transformation
+#2963.372
+
+#PCA
+pcr.pred <- predict(pcr.fit.rook, test_x_rook, ncomp = 1)
+mean((pcr.pred - test_y_rook)^2) #3629.757
+
+#PLS
+pls.pred <- predict(pls.fit.rook, test_x_rook, ncomp = 1)
+mean((pls.pred - test_y_rook)^2) #3879.036
+
+#Decision Tree
+tree.pred <- predict(tree.ff.rook, newdata = test_rook_reg)
+mean((tree.pred - test_y_rook)^2) #5337.597
+
+#Random Forest
+rf.pred <- predict(ff.rf.rook, newdata = test_rook_reg)
+mean((rf.pred - test_y_rook)^2) #3994.414
+
+#Gradient Boost
+boost.pred <- predict(ff.boost.rook, newdata = test_rook_reg, n.trees = 1000)
+mean((boost.pred - test_y_rook)^2) #4146.975
+```
+
+```{r warning = FALSE, message = FALSE, echo = FALSE}
+Model.Test.Rookies = c("Linear Regression", "PCA, 1 comp", "PLS, 1 comp", "Random Forest", "Gradient Boost", "Decision Tree")
+mse.r.df <- data.frame("MSE" = c(2963.372, 3629.757, 3879.036, 3994.414, 4146.975, 5337.597))
+mse.r.df <- cbind(Model.Test.Rookies, mse.r.df)
+
+mse.r.df
+```
+
+## Recommendations
+
+Here, I put together my predictions for the 2023 NFL football season running backs. I compiled a list of the projected top 75-ish half-PPR running backs for this season from FantasyPros.
+
+I decided to get the 2023 predictions from these models, but re-train them on the full 2012-2022 dataset. Without changing things such as the number of components & assuming that would stay the same, I think this way I can account for more variation year to year & player to player. Additionally, more data is never a bad thing.
+
+I did not choose all models that were produced. I chose only the models that had the lowest MSE's and were not super far apart from one another. For the non-rookies, I used the random forest, gradient boost, PCA with 5 components, and PLS with 2 components. For the rookies, I went with the multiple linear regression, PCA with 1 component, and PLS with 1 component.
+
+From here, I averaged out all of the 3 or 4 model predictions for each player to get a composite model prediction.
+
+*As a side note, when I actually drafted my fantasy football team, I also used other data sources (FantasyPros, NumberFire, and DraftSharks) and averaged these projections with my model for the most wholesome projection possible.*
+
+### Non-Rookies
+
+```{r message = FALSE, warning = FALSE, include = FALSE}
+ff2023_reg <- non.rookies2023 %>%
+  dplyr::select(-c(PlayerName, Team, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Year))
+
+finaltestdat <- non.rookies %>%
+  dplyr::select(-c(PlayerName, Team, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Year, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD))
+
+set.seed(5)
+pcr.fit <- pcr(Fantasy_Points_Half_PPR ~ ., data = finaltestdat, scale = TRUE, validation = "CV")
+
+pcr.pred <- predict(pcr.fit, ff2023_reg, ncomp = 5)
+
+```
+
+```{r include = FALSE}
+set.seed(5)
+pls.fit <- plsr(Fantasy_Points_Half_PPR ~., data= finaltestdat, scale = TRUE, validation= "CV")
+
+pls.pred <- predict(pls.fit, ff2023_reg, ncomp = 2)
+```
+
+```{r include = FALSE}
+#Random Forest
+set.seed(5)
+ff.rf <- randomForest(Fantasy_Points_Half_PPR ~ ., data = finaltestdat, mtry = 21, importance = TRUE) #
+
+rf.pred <- predict(ff.rf, newdata = ff2023_reg)
+
+#Gradient Boosted
+set.seed(5)
+ff.boost <- gbm(Fantasy_Points_Half_PPR ~ ., data = finaltestdat, distribution = "gaussian", n.trees = 500, interaction.depth = 4, shrinkage = 0.01, verbose = F)
+
+boost.pred <- predict(ff.boost, newdata = ff2023_reg, n.trees = 500)
+```
+
+Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models.
+
+```{r warning = FALSE, message= FALSE}
+nr23 <- data.frame(non.rookies2023, rf.pred, boost.pred, pcr.pred, pls.pred)
+nr23$Projected_Half_PPR_Fantasy_Points <- rowMeans(nr23[72:75])
+```
+
+```{r warning = FALSE, message = FALSE, echo = FALSE}
+head(arrange(nr23[c(2,71,76)], desc(Projected_Half_PPR_Fantasy_Points)),30)
+```
+
+### Rookies
+
+```{r warning = FALSE, message = FALSE, include = FALSE}
+ff2023_rook_reg <- rookies2023 %>%
+  dplyr::select(-c(PlayerName, Year, Team, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))
+
+finalrookietestdat <- rookies %>%
+  dplyr::select(-c(PlayerName, Year, Team, Att, RushYds, RushTD, Fumble, Rec, RecYds, RecTD, RBCapNumber, RBCashSpent, OL_CapNum, OL_CashSpent, QB_CapNum, QB_CashSpent, Prev_Yds_Per_Att, Prev_Rush_Yds_Per_Game, Prev_Att_Per_Game, Prev_1DRush_Per_Att, Prev20PerAtt, Prev40PerAtt, Prev_AttPerFum,  Prev_RushTDPerAtt, PrevRecPerAtt, PrevCatchPerc, Prev_Yds_Per_Rec, Prev_Yds_Per_Tgt, Prev_Rec_Per_Game, Prev_RecYds_Per_Game,  Prev_Tgt_Per_Game , Prev_RecTD_Per_Rec, Prev_1DRec_Per_Rec, DraftNum, Prev_RushYds, PrevRec, Prev_RZ_RushAtt_Ins10_Perc, Prev_Rec_Yds, YearsPro, Prev_GP, Prev_Att, Prev_Rush_TD, Prev_1D_Rush, Prev_Lng_Run, Prev_Fmb, Prev_RZ_RushAtt_Ins20_Perc, Prev_RZ_RushAtt_Ins5_Perc, Prev20Runs, Prev40Runs, PrevTgt, Prev_Rec_TD, Prev_1D_Rec, Prev_Lng_Rec, AgeGT28, CareerCarriesGT1750, PrevGT1600, PrevGT320, RookieContractYear, FranchiseTag))
+```
+
+```{r warning = FALSE, message = FALSE, include = FALSE}
+rookie_lm <- lm(Fantasy_Points_Half_PPR^0.5 ~ IA_RBCapNum + sqrt(PPR_ADP) + FirstYearOnTeam + Most_RushYds_Odds + ImputedOddsRushYds + Most_RushYds_Odds:ImputedOddsRushYds, data = finalrookietestdat)
+
+mlr.pred <- predict(rookie_lm, ff2023_rook_reg)
+mlr.pred <- mlr.pred^2
+
+
+set.seed(5)
+pcr.fit <- pcr(Fantasy_Points_Half_PPR ~ ., data = finalrookietestdat, scale = TRUE, validation = "CV")
+
+pcr.pred <- predict(pcr.fit, ff2023_rook_reg, ncomp = 1)
+
+
+set.seed(5)
+pls.fit <- plsr(Fantasy_Points_Half_PPR ~., data= finalrookietestdat, scale = TRUE, validation= "CV")
+
+pls.pred <- predict(pls.fit, ff2023_rook_reg, ncomp = 1)
+```
+
+Here is a snapshot of all 12 projected half-PPR fantasy rookie running backs.
+
+```{r warning = FALSE, message= FALSE}
+nr23.rook <- data.frame(rookies2023, mlr.pred, pcr.pred, pls.pred)
+nr23.rook$Projected_Half_PPR_Fantasy_Points <- rowMeans(nr23.rook[72:74])
+```
+
+```{r warning = FALSE, message = FALSE, echo = FALSE}
+head(arrange(nr23.rook[c(2,71,75)], desc(Projected_Half_PPR_Fantasy_Points)),30)
+```
+
+### Interpretation
+
+As I look over these projections, I am excited to see they are in line with what many of the top fantasy sites are ranking these running backs at. The goal of this analysis was to 1) correctly value running backs and 2) identify potential late round candidates that I could take in my draft.
+
+Here are my draft picks + where I selected them from my fantasy draft on 8/16/2023:
+
+-   Bijan Robinson - 6 (current ADP: 8.8)
+
+-   Jonathan Taylor - 24 (current ADP: 18.8)
+
+-   Cam Akers - 44 (current ADP: 63.5)
+
+-   Rachaad White - 117 (current ADP: 65.3)
+
+-   Tyler Allgeier - 104 (current ADP: 140.7)
+
+
+While doing my fantasy draft, my first round pick was Bijan Robinson, the rookie, at pick 6. This is given that McCaffrey, Barkley, and Ekeler are all off the board. While this was slightly ahead of his ADP, I noticed that many top 10 NFL draft rookies in the past have done extremely well their first season (Ezekiel Elliot (2016 - 1st), Saquon Barkley (2018 - 1st), Christian McCaffrey (2017 - 10th), and Leonard Fournette (2017 - 9th). This was my motivation behind taking Bijan Robinson, as well as the steep drop off in running back talent after this & the fact that I didn't want a wide receiver or tight end. 
+
+I was also able to draft Jonathan Taylor (Avg PPR 18.8) at position 24, which is a major steal for a player of his caliber and the model projecting him to be a top 10 ranking in the 3rd round. He has some risk with his contract dispute and the likelihood that he get traded to another team, however, I had to work with the information I had available to me when I was doing my draft. 
+
+I also snagged Rachaad White and Cam Akers, two players in the top 30 projections for running back talent. While the model doesn't show a clear difference in these two players performance vs other players, I think the given combination of opportunity and skill provides a perfect fit for a breakout candidates. 
+
+Cam Akers had a very strong finish in his last 5 games of last season and is the clear starter in that Los Angeles backfield. Likewise, Rachaad White is the starter and on an offense that has questionable quarterback play - so they will need to rely on the running game and check down passes to their running backs frequently. 
+
+I was able to take Rachaad White in the 12th round, while his ADP was projected in the 7th. My league uses "keeper" players, where you can keep one player from your team on the year before. I chose to keep Rachaad White and I got immense value for his skill level at a very late pick. 
+
+Lastly - I wanted to mention that I took Tyler Allgeier, who is the backup running back in Atlanta (where Bijan Robinson plays). Allgeier was a 1,000 yard rusher last season and is very talented. While Robinson will likely take a lot of the playing time, Allgeier provides a safety net for me in case Robinson gets hurt. 
+
+### Limitations
+
+While making my draft picks, I used the model for guidance - but still relied on what I will call "industry knowledge" to guide my decisions. Certain players, like Derrick Henry, are on the near end of their career. He's had many seasons with 300+ carries, a 2,000 yard season, and a hall of famer. However, the body can only handle so much impact, and at 29 years old, I think it's likely that he will taper off this year. 
+
+The model ranked him as the eight best running back for non-rookies, but I think it's very likely he won't play the full 18 games this season. While this is merely speculation, I personally think the model has ranked him too high. This is where adding another variable to account for possible injury could benefit and imrpove the model. 
+
+### Future Improvements
+
+In regard to future improvements, I think I could account for more variables, such as injury concerns or more correctly defining a contract year. I could also rate players in terms of a level of risk that they are likely to get injured before the season starts. That would be crucial to model development.
+
+I'd also like to add a variable on how the player performed in their last 5 games of the previous season. A player like Cam Akers is a perfect example of why this variable could potentially be important. He started off the 2022 season by averaging less than 10 points per game for over the first 2/3 of the season. After the team's bye week & an invigorated spirit, Cam Akers finished within the top 15 for RB for 4 out of 6 weeks. He way out performed expectations and fantasy managers loved him. Accounting for this trend could potentially help identify certain impactful individuals.
+
+Lastly, a common belief in football is that running back's decline in performance around 28 years old. I considered changing the age categorical variable 'AgeGT28' to whether or not the running back's age is greater than or equal to 29. I think there is a better shot at capturing more of the variation and explanation of age into half-PPR fantasy points. As we can see in the graph below, it appears there's a clearer drop off in points before and after the dotted red line, compared to the black. While this was not confirmed statistically yet, I think this could potentially provide more value to the model upon further analysis.
+
+```{r warning = FALSE, message = FALSE}
+ggplot(data = train, aes(x = Age, y = Fantasy_Points_Half_PPR)) +
+  geom_point() +
+  geom_vline(xintercept = 28) +
+  geom_vline(xintercept = 29, linetype ="longdash", col = "red") +
+  labs(x = "Age", y = "Half-PPR Fantasy Points") +
+  theme_classic() +
+  annotate("text", x = 30, y = 320, label = "Age = 29", col = "red") +
+  annotate("text", x = 27, y = 375, label = "Age = 28")
+```
+
+At the time of this writing (Aug 2023), I plan to compare how the model performed against the 2023 season for running backs in February, just after the Super Bowl. Fingers crossed for a great fantasy season!
+
+## References
+
+-   **Pro-Football-Reference:** historical RB game stats, team stats
+
+    -   <https://www.pro-football-reference.com/years/2022/rushing.htm>
+
+    -   <https://www.pro-football-reference.com/years/2022/receiving.htm>
+
+    -   <https://www.pro-football-reference.com/years/2022/index.htm>
+
+    -   <https://www.pro-football-reference.com/years/2022/redzone-rushing.htm>
+
+    -   <https://www.pro-football-reference.com/years/2023/preseason_odds.htm>
+
+-   **NFL.com:** 20+, 40+ yard runs
+
+    -   <https://www.nfl.com/stats/player-stats/category/rushing/2022/reg/all/rushingyards/desc>
+
+-   **OverTheCap:** salaries
+
+    -   <https://overthecap.com/position/running-back/2023>
+
+    -   <https://overthecap.com/position/right-tackle/2023>
+
+    -   <https://overthecap.com/position/right-guard/2023>
+
+    -   <https://overthecap.com/position/center/2023>
+
+    -   <https://overthecap.com/position/left-tackle/2023>
+
+    -   <https://overthecap.com/position/left-guard/2023>
+
+    -   <https://overthecap.com/position/quarterback/2023>
+
+-   **SporTrac:** contract and salary information
+
+-   **SportsOddsHistory.com:** historical odds of running backs
+
+    -   <https://www.sportsoddshistory.com/nfl-award/?y=2022&sa=nfl&a=rush&o=r>
+
+-   **BetMGM:** live odds of running backs Regular Season Stat Leaders - Most Regular Season Rushing Yards Odds
+
+-   **Madden:** NFL video game historical Madden ratings
+
+    -   <https://maddenratings.weebly.com/madden-nfl-24.html>
+
+-   **FantasyPros:** fantasy football historical player draft position
+
+    -   <https://www.fantasypros.com/nfl/adp/ppr-overall.php?year=2023>
+
+-   **Inflation Calculator:** all salary cap numbers were adjusted for inflation to 2023 dollars
+
+    -   <https://www.usinflationcalculator.com/>
