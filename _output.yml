@@ -1,9 +1,10 @@
 bookdown::gitbook:
+  toc_depth: 6
   css: style.css
   config:
     toc:
-      toc_depth: 3
       before: |
         <li><a href="./">NFL RB Preds</a></li>
       after: |
         <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+      collapse: subsubsection
