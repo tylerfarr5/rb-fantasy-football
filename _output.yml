@@ -1,6 +1,6 @@
 bookdown::gitbook:
   css: style.css
-  toc_depth: 4
+  toc_depth: 10
   config:
     toc:
       before: |
