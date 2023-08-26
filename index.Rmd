@@ -3,6 +3,8 @@ title: "NFL RB Fantasy Football Performance Predictions"
 author: "Tyler Farr"
 date: "8/26/2023"
 site: bookdown::bookdown_site
+gitbook:
+    toc_depth: 4
 ---
 
 # RB Fantasy Performance
