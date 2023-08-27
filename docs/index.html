@@ -640,7 +640,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><em>As a side note, when I actually drafted my fantasy football team, I also averaged other data sources (FantasyPros, NumberFire, and DraftSharks) to build the most wholesome projection possible.</em></p>
 <div id="non-rookies-3" class="section level3 hasAnchor" number="1.6.1">
 <h3><span class="header-section-number">1.6.1</span> Non-Rookies<a href="#non-rookies-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models.</p>
+<p>Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models. Austin Ekeler, Christian McCaffrey, and Saquon Barkley lead the pack with over 200+ projected fantasy points. These 3 are all projected to go early in the first round of fantasy drafts - and rightfully so.</p>
+<p>Some names that pop out to me are Joe Mixon, who is projected 6th highest in terms of points yet has an ADP 2 rounds later than the other players around him.</p>
+<p>James Conner has an ADP in the 7th round, while the players being drafted around him with similar projected fantasy points are being taken in the 4th round.</p>
+<p>Lastly, Antonio Gibson has a very high ADP in the 12th round; however, other players with similarly projected fantasy points are being taken in the 5th to 8th rounds.</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a>nr23 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(non.rookies2023, rf.pred, boost.pred, pcr.pred, pls.pred)</span>
 <span id="cb42-2"><a href="#cb42-2" tabindex="-1"></a>nr23<span class="sc">$</span>Projected_Half_PPR_Fantasy_Points <span class="ot">&lt;-</span> <span class="fu">rowMeans</span>(nr23[<span class="dv">72</span><span class="sc">:</span><span class="dv">75</span>])</span></code></pre></div>
 <pre><code>##             PlayerName PPR_ADP Projected_Half_PPR_Fantasy_Points
@@ -677,7 +680,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="rookies-3" class="section level3 hasAnchor" number="1.6.2">
 <h3><span class="header-section-number">1.6.2</span> Rookies<a href="#rookies-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>Here is a snapshot of all 12 projected half-PPR fantasy rookie running backs.</p>
+<p>Here is a snapshot of all 12 projected half-PPR fantasy rookie running backs. Outside of Bijan Robinson and Jahmyr Gibbs, both top 15 selections in this years NFL draft, I expect the rest of this rookie class to be a wash. As the analysis above proved, most running backs taken outside the first round or two typically does not score a high amount of fantasy points primarily due to limited opportunity.</p>
+<p>If one of the starters were to get hurt, these rookies would have a great opportunity to significantly outperform their projected fantasy points.</p>
 <div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" tabindex="-1"></a>nr23.rook <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(rookies2023, mlr.pred, pcr.pred, pls.pred)</span>
 <span id="cb44-2"><a href="#cb44-2" tabindex="-1"></a>nr23.rook<span class="sc">$</span>Projected_Half_PPR_Fantasy_Points <span class="ot">&lt;-</span> <span class="fu">rowMeans</span>(nr23.rook[<span class="dv">72</span><span class="sc">:</span><span class="dv">74</span>])</span></code></pre></div>
 <pre><code>##           PlayerName PPR_ADP Projected_Half_PPR_Fantasy_Points

@@ -1059,7 +1059,13 @@ ff.boost <- gbm(Fantasy_Points_Half_PPR ~ ., data = finaltestdat, distribution =
 boost.pred <- predict(ff.boost, newdata = ff2023_reg, n.trees = 500)
 ```
 
-Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models.
+Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models. Austin Ekeler, Christian McCaffrey, and Saquon Barkley lead the pack with over 200+ projected fantasy points. These 3 are all projected to go early in the first round of fantasy drafts - and rightfully so. 
+
+Some names that pop out to me are Joe Mixon, who is projected 6th highest in terms of points yet has an ADP 2 rounds later than the other players around him. 
+
+James Conner has an ADP in the 7th round, while the players being drafted around him with similar projected fantasy points are being taken in the 4th round. 
+
+Lastly, Antonio Gibson has a very high ADP in the 12th round; however, other players with similarly projected fantasy points are being taken in the 5th to 8th rounds. 
 
 ```{r warning = FALSE, message= FALSE}
 nr23 <- data.frame(non.rookies2023, rf.pred, boost.pred, pcr.pred, pls.pred)
@@ -1099,8 +1105,9 @@ pls.fit <- plsr(Fantasy_Points_Half_PPR ~., data= finalrookietestdat, scale = TR
 pls.pred <- predict(pls.fit, ff2023_rook_reg, ncomp = 1)
 ```
 
-Here is a snapshot of all 12 projected half-PPR fantasy rookie running backs.
+Here is a snapshot of all 12 projected half-PPR fantasy rookie running backs. Outside of Bijan Robinson and Jahmyr Gibbs, both top 15 selections in this years NFL draft, I expect the rest of this rookie class to be a wash. As the analysis above proved, most running backs taken outside the first round or two typically does not score a high amount of fantasy points primarily due to limited opportunity.
 
+If one of the starters were to get hurt, these rookies would have a great opportunity to significantly outperform their projected fantasy points. 
 ```{r warning = FALSE, message= FALSE}
 nr23.rook <- data.frame(rookies2023, mlr.pred, pcr.pred, pls.pred)
 nr23.rook$Projected_Half_PPR_Fantasy_Points <- rowMeans(nr23.rook[72:74])
