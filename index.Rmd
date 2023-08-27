@@ -13,9 +13,9 @@ site: bookdown::bookdown_site
 
 Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)
 
--   For non-rookie running backs, the **random forest model** performed the best
+-   For non-rookie running backs, the **random forest model** performed the best, with an error of +/- 63.5 fantasy points. 
 
--   For rookie running backs, the **linear regression model** performed the best.
+-   For rookie running backs, the **linear regression model** performed the best, with an error of +/- 54.4 fantasy points.
 
 I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed.
 
