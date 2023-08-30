@@ -13,7 +13,7 @@ decision-tree-random-forest
 gradient-boost
 rookies-1
 linear-regression-1
-principal-component-analysis
+principal-component-regression
 partial-least-squares-1
 decision-tree-random-forest-1
 gradient-boost-1

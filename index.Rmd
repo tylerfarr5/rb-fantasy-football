@@ -1,7 +1,7 @@
 ---
 title: "NFL RB Fantasy Football Performance Predictions"
 author: "Tyler Farr"
-date: "8/26/2023"
+date: "8/30/2023"
 site: bookdown::bookdown_site
 ---
 
@@ -11,13 +11,13 @@ site: bookdown::bookdown_site
 
 **Objective**
 
-*Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)*
+*Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component regression, partial least squares, decision tree, random forest, and gradient boost)*
 
--   For non-rookie running backs, the random forest model performed the best, with an **error of +/- 63.5 fantasy points**. 
+-   For non-rookie running backs, the 2012-2022 random forest model performed the best, with a **test error of +/- 63.5 fantasy points**. 
 
--   For rookie running backs, the linear regression model performed the best, with an **error of +/- 54.4 fantasy points**.
+-   For rookie running backs, the 2012-2022 linear regression model performed the best, with a **test error of +/- 54.4 fantasy points**.
 
-I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed. Please see the **Recommendations** section for current predictions. 
+I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed. Please see the **Recommendations** section for 2023 predictions. 
 
 **Background**
 
@@ -41,7 +41,7 @@ Using the conversions above, I calculated a running back's total fantasy points 
 
 **Data**
 
-The data collected was from the 2012 to 2022 NFL seasons on running backs, mainly from Pro-Football-Reference for performance/game stats and OverTheCap/SporTrac for salary information. Please check the references section for the full list of sources.
+The data collected was from the 2012 to 2022 NFL seasons on running backs, mainly from Pro-Football-Reference for performance/game stats and OverTheCap/SporTrac for salary information. All salary information was adjusted to 2023 for inflation. Please check the references section for the full list of sources.
 
 The 2023 season will be the test data set, a list of the top \~75 projected running backs for this season. The goal is to use only known data going into the season, as opposed to the data we would find out at the end of the season, so I can predict player fantasy points at the beginning of the season & draft my team based on this prediction.
 
@@ -69,7 +69,7 @@ library(gbm)
 library(neuralnet)
 ```
 
-Next, we load in the dataset
+Next, we load in the dataset. Please see https://github.com/tylerfarr5/rb-fantasy-football for the full dataset. 
 
 ```{r message = FALSE, warning = FALSE}
 full.rb.data <- read_excel("NFL Fantasy Football Predictive Model.xlsx")
@@ -344,7 +344,7 @@ prev40aov <- aov(Fantasy_Points_Half_PPR ~ factor(Prev40Runs), data = train)
 TukeyHSD(prev40aov)
 ```
 
-Next, "boom" or "bust" running backs are typically those with 'big-play ability.' Those can be explored by 40+ yard runs in the previous season. The boxplots below show a statistically significant difference in the average half-PPR fantasy points in at least one of the groups. Upon further inspection, we see a significant difference between 0 and 2 and 0 and 3. There is a generally increasing trend in the boxplots as well, so there is likely a relationship between the number of 40+ yard runs and a running back's fantasy production.
+Next, "boom" or "bust" running backs are typically those with 'big-play ability.' Those can be explored by 40+ yard runs in the previous season. The boxplots below show a statistically significant difference in the average half-PPR fantasy points in at least one of the groups. Upon further inspection, we see a significant difference between 0 and 2 or higher. 7 and 8 were not included in post-hoc testing due to there only being a single occurrence in the data. There is a generally increasing trend in the boxplots as well, so there is likely a relationship between the number of 40+ yard runs and a running back's fantasy production.
 
 ```{r warning= FALSE, message = FALSE}
 ggplot(data = train, aes(x = factor(Prev40Runs), y = Fantasy_Points_Half_PPR)) +
@@ -575,23 +575,23 @@ The R-squared model was able to explain 37.7% of the variation in half-PPR fanta
 
 -   Madden Rating
 
--   FirstYearOnTeam *(1 for yes, 0 for no)*
+-   First Year On Team *(1 for yes, 0 for no)*
 
--   IA_RBCashSpent *(inflation-adjusted salary incentives)*
+-   Inflation-adjusted salary cash spent *(salary incentives)*
 
--   PPR_ADP *(average draft position, PPR formats)*
+-   Average Draft Position, PPR Format
 
--   PrevGT320 *(320 carries in previous season- 1 for yes, 0 for no)*
+-   Previous Season: Over 320 Carries *(1 for yes, 0 for no)*
 
--   Height_in *(inches)*
+-   Player Height *(inches)*
 
--   Prev_1D_Rec *(total first down receptions in previous season)*
+-   Previous Season: Total 1st Down Receptions
 
--   Prev_Lng_Rec *(longest reception in previous season)*
+-   Previous Season: Longest Reception
 
--   Most_RushYds_Odds *(BetMGM rushing yards odds before season starts)*
+-   BetMGM Season Rushing Yards Leader *(set before season starts)*
 
--   ImputedOddsRushYds *(1 if imputed, 0 if provided by BetMGM)*
+-   Indicator variable for imputed rushing yards *(1 if imputed, 0 if provided by BetMGM)*
 
 We could argue from the diagnostic plots below that the model meets the assumptions of linear regression.
 
@@ -728,7 +728,7 @@ boxcox(final.mod4)
 
 Since I had many variables that were very similar/collinear to each other, aggregating them into principle components seemed to be effective for capturing the most amount of variance between different groups of variables.
 
-I chose to keep most of the variables in the model, only removing a limited number that aren't relevant to the analysis, like the player's name or the non-inflation adjusted salary information. From this, I split the dataset into a train and test matrix to proceed with PCA.
+I chose to keep most of the variables in the model, only removing a limited number that aren't relevant to the analysis, like the player's name or the non-inflation adjusted salary information. From this, I split the dataset into a train and test matrix to proceed with PCR.
 
 ```{r message = FALSE, warning = FALSE}
 train_reg3 <- train %>%
@@ -756,7 +756,7 @@ validationplot(pcr.fit, val.type = "MSEP")
 
 #### Partial Least Squares
 
-Using the same training/test dataset from PCA, I will attempt to use Partial Least Squares method as well - another dimension reduction method since I have many variables that are correlated with each other.
+Using the same training/test dataset from PCR, I will attempt to use Partial Least Squares method as well - another dimension reduction method since I have many variables that are correlated with each other.
 
 From the results of the validation plot, there is a clear "elbow" or dip at 2 components, so I will use that for the final PLS model.
 
@@ -819,15 +819,15 @@ For a linear regression model, I did not have to decide between models this time
 
 The final model explains 41.79% of the variation in half-PPR fantasy points given the following variables:
 
--   FirstYearOnTeam *(1 for yes, 0 for no)*
+-   First Year On Team *(1 for yes, 0 for no)*
 
--   IA_RBCapNum *(inflation-adjusted salary relative to team salary cap)*
+-   Inflation-adjusted salary *(relative to team salary cap)*
 
--   PPR_ADP *(average draft position, PPR formats)*
+-   Average Draft Position, PPR Format
 
--   Most_RushYds_Odds *(BetMGM rushing yards odds before season starts)*
+-   BetMGM Season Rushing Yards Leader *(set before season starts)*
 
--   ImputedOddsRushYds *(1 if imputed, 0 if provided by BetMGM)*
+-   Indicator variable for imputed rushing yards *(1 if imputed, 0 if provided by BetMGM)*
 
 Interestingly, the variables selected between rookies and non-rookies are similar yet different. Looking at the diagnostic plots, the Q-Q plot is the biggest question mark; however a histogram of the residuals appears to be relatively Normal so I chose to let it pass the assumption.
 
@@ -862,9 +862,9 @@ shapiro.test(resid(rookie_lm))
 boxcox(rookie_lm)
 ```
 
-#### Principal Component Analysis
+#### Principal Component Regression
 
-Once again, a similar process was conducted for principle component analysis. We see the "elbow" in the validation plot occur at 1 component.
+Once again, a similar process was conducted for principle component regression We see the "elbow" in the validation plot occur at 1 component.
 
 ```{r warning = FALSE, message = FALSE}
 train_x_rook <- model.matrix(Fantasy_Points_Half_PPR ~ ., data = train_rook_reg)[, -1]
@@ -922,9 +922,9 @@ After fitting the various models to the dataset, I compared the predictions with
 
 ### Non-Rookies
 
-Starting with the non-rookies, we see a table of each test and it's mean square error. The random forest provides the lowest mean square error of \~ 4,000, which is essentially +/- 60-65 half-PPR fantasy points. However, the gradient boost, PCA, and PLS models were not very far behind.
+Starting with the non-rookies, we see a table of each test and it's mean square error. The random forest provides the lowest mean square error of \~ 4,000, which is essentially +/- 60-65 half-PPR fantasy points. However, the gradient boost, PCR, and PLS models were not very far behind.
 
-The PCA model with 1 component was not included since it had a higher MSE than the 5-component PCA model.
+The PCR model with 1 component was not included since it had a higher MSE than the 5-component PCR model.
 
 ```{r warning = FALSE, message= FALSE, include = FALSE}
 # Linear Regression
@@ -936,7 +936,7 @@ mean((pred_lm3-test_y2)^2) #unscaled, R-sq high
 mean((pred_lm4^2-test_y2)^2) #unscaled, AIC --> squared pred to match apples to apples
 #4761.269
 
-#PCA
+#PCR
 pcr.pred <- predict(pcr.fit, test_x3, ncomp = 1)
 mean((pcr.pred - test_y3)^2) #4541.784
 
@@ -961,7 +961,7 @@ mean((boost.pred - test_y3)^2) #4058.779
 ```
 
 ```{r warning = FALSE, message = FALSE, echo = FALSE}
-Model.Test.Non_Rookies = c("Random Forest", "Gradient Boost", "PCA, 5 comp", "PLS, 2 comp", "Linear Regression (R-sq)", "Linear Regression (AIC)")
+Model.Test.Non_Rookies = c("Random Forest", "Gradient Boost", "PCR, 5 comp", "PLS, 2 comp", "Linear Regression (R-sq)", "Linear Regression (AIC)")
 mse.nr.df <- data.frame("MSE" = c(4028.147, 4058.779, 4227.251, 4248.735, 4330.715, 4761.269))
 mse.nr.df <- cbind(Model.Test.Non_Rookies, mse.nr.df)
 
@@ -970,7 +970,7 @@ mse.nr.df
 
 ### Rookies
 
-The MSE table below provides a look into the rookie models. As we can, the multiple linear regression model performed the best, with an MSE of \~2960, or about +/- 55 half-PPR fantasy points. However, the PCA, PLS, and Random Forest models were not very far behind.
+The MSE table below provides a look into the rookie models. As we can, the multiple linear regression model performed the best, with an MSE of \~2960, or about +/- 55 half-PPR fantasy points. However, the PCR, PLS, and Random Forest models were not very far behind.
 
 I'm not totally sure why the Decision Tree model performed so poorly, but it will not be used in predictions.
 
@@ -981,7 +981,7 @@ pred_lm_rookies <- predict(rookie_lm, newdata = test_rook_reg) #linear model1
 mean((pred_lm_rookies^2 - test_y_rook)^2) #squared predictions b/c of y transformation
 #2963.372
 
-#PCA
+#PCR
 pcr.pred <- predict(pcr.fit.rook, test_x_rook, ncomp = 1)
 mean((pcr.pred - test_y_rook)^2) #3629.757
 
@@ -1003,7 +1003,7 @@ mean((boost.pred - test_y_rook)^2) #4146.975
 ```
 
 ```{r warning = FALSE, message = FALSE, echo = FALSE}
-Model.Test.Rookies = c("Linear Regression", "PCA, 1 comp", "PLS, 1 comp", "Random Forest", "Gradient Boost", "Decision Tree")
+Model.Test.Rookies = c("Linear Regression", "PCR, 1 comp", "PLS, 1 comp", "Random Forest", "Gradient Boost", "Decision Tree")
 mse.r.df <- data.frame("MSE" = c(2963.372, 3629.757, 3879.036, 3994.414, 4146.975, 5337.597))
 mse.r.df <- cbind(Model.Test.Rookies, mse.r.df)
 
@@ -1016,9 +1016,9 @@ I put together my predictions for the 2023 NFL football season running backs. I 
 
 I decided to get the 2023 predictions from these models but re-train them on the full 2012-2022 dataset. Without changing things such as the number of components & assuming that would stay the same, the model can account for more variation year to year & player to player. Additionally, more data is always a good thing.
 
-I did not choose all the models that were produced. I chose only the models that had the lowest MSE's and were not super far apart from one another. For the non-rookies, I used the random forest, gradient boost, PCA with 5-components, and PLS with 2-components. For the rookies, I went with the multiple linear regression, PCA with 1 component, and PLS with 1 component.
+I did not choose all the models that were produced. I chose only the models that had the lowest MSE's and were not super far apart from one another. For the non-rookies, I used the random forest, gradient boost, PCR with 5-components, and PLS with 2-components. For the rookies, I went with the multiple linear regression, PCR with 1 component, and PLS with 1 component.
 
-From here, I averaged the 3 or 4 model predictions for each player to get a composite model prediction.
+From here, I ensembled the 3 or 4 model predictions for each player to get a composite model prediction.
 
 *As a side note, when I actually drafted my fantasy football team, I also averaged other data sources (FantasyPros, NumberFire, and DraftSharks) to build the most wholesome projection possible.*
 
@@ -1059,7 +1059,7 @@ ff.boost <- gbm(Fantasy_Points_Half_PPR ~ ., data = finaltestdat, distribution =
 boost.pred <- predict(ff.boost, newdata = ff2023_reg, n.trees = 500)
 ```
 
-Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models. Austin Ekeler, Christian McCaffrey, and Saquon Barkley lead the pack with over 200+ projected fantasy points. These 3 are all projected to go early in the first round of fantasy drafts - and rightfully so. 
+Here, I ensembled the 4 models to create an output of the top 30 projected half-PPR non-rookie running backs. Austin Ekeler, Christian McCaffrey, and Saquon Barkley lead the pack with over 200+ projected fantasy points. These 3 are all projected to go early in the first round of fantasy drafts - and rightfully so. 
 
 One name that pops out to me is Joe Mixon, expected 4th round draft pick, who is projected to score a similar amount of fantasy points with running backs taken two rounds ahead of him in the 2nd. With Samaje Perine leaving for the Denver Broncos, Mixon has an excellent opportunity to significantly outperform his ADP and be a dominant running back in Cincinatti. 
 
@@ -1172,6 +1172,8 @@ ggplot(data = train, aes(x = Age, y = Fantasy_Points_Half_PPR)) +
 ```
 
 At the time of this writing (Aug 2023), I plan to compare how the model performed against the 2023 season for running backs in February, just after the Super Bowl. Fingers crossed for a great fantasy season!
+
+Please see my Github for the full dataset: https://github.com/tylerfarr5/rb-fantasy-football
 
 ## References
 
