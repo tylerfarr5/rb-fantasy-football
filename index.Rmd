@@ -11,13 +11,13 @@ site: bookdown::bookdown_site
 
 **Objective**
 
-Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)
+*Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)*
 
--   For non-rookie running backs, the **random forest model** performed the best, with an error of +/- 63.5 fantasy points. 
+-   For non-rookie running backs, the random forest model performed the best, with an **error of +/- 63.5 fantasy points**. 
 
--   For rookie running backs, the **linear regression model** performed the best, with an error of +/- 54.4 fantasy points.
+-   For rookie running backs, the linear regression model performed the best, with an **error of +/- 54.4 fantasy points**.
 
-I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed.
+I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed. Please see the **Recommendations** section for current predictions. 
 
 **Background**
 
@@ -1061,11 +1061,12 @@ boost.pred <- predict(ff.boost, newdata = ff2023_reg, n.trees = 500)
 
 Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models. Austin Ekeler, Christian McCaffrey, and Saquon Barkley lead the pack with over 200+ projected fantasy points. These 3 are all projected to go early in the first round of fantasy drafts - and rightfully so. 
 
-Some names that pop out to me are Joe Mixon, who is projected 6th highest in terms of points yet has an ADP 2 rounds later than the other players around him. 
+One name that pops out to me is Joe Mixon, expected 4th round draft pick, who is projected to score a similar amount of fantasy points with running backs taken two rounds ahead of him in the 2nd. With Samaje Perine leaving for the Denver Broncos, Mixon has an excellent opportunity to significantly outperform his ADP and be a dominant running back in Cincinatti. 
 
-James Conner has an ADP in the 7th round, while the players being drafted around him with similar projected fantasy points are being taken in the 4th round. 
+James Conner has an ADP in the 7th round, while the players being drafted around him with similar projected fantasy points are being taken in the 4th round. With Darrel Williams and Eno Benjamin out of the picture and no new additions, James Conner will be a workhorse in Arizona. Likewise, Arizona's QB situation is uncertain right now since Kyler Murray's injury, so they will definitely rely on the running game more. 
 
-Lastly, Antonio Gibson has a very high ADP in the 12th round; however, other players with similarly projected fantasy points are being taken in the 5th to 8th rounds. 
+Lastly, Antonio Gibson has a very high ADP in the 12th round; however, other players with similarly projected fantasy points are being taken in the 5th to 8th rounds. While there is another running back in Washington with Brian Robinson Jr., he underwhelmed last year as a rookie - averaging 3.9 yards per carry. The new offensive coordinator in town - Eric Bieniemy - will bring an interesting twist on the Washington way. Gibson is a great late round steal if you can manage. 
+
 
 ```{r warning = FALSE, message= FALSE}
 nr23 <- data.frame(non.rookies2023, rf.pred, boost.pred, pcr.pred, pls.pred)

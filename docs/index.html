@@ -211,12 +211,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="introduction" class="section level2 hasAnchor" number="1.1">
 <h2><span class="header-section-number">1.1</span> Introduction<a href="#introduction" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p><strong>Objective</strong></p>
-<p>Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)</p>
+<p><em>Predict NFL running back Half-PPR fantasy points for the 2023-2024 season through various models (linear regression, principle component analysis, partial least squares, decision tree, random forest, and gradient boost)</em></p>
 <ul>
-<li><p>For non-rookie running backs, the <strong>random forest model</strong> performed the best, with an error of +/- 63.5 fantasy points.</p></li>
-<li><p>For rookie running backs, the <strong>linear regression model</strong> performed the best, with an error of +/- 54.4 fantasy points.</p></li>
+<li><p>For non-rookie running backs, the random forest model performed the best, with an <strong>error of +/- 63.5 fantasy points</strong>.</p></li>
+<li><p>For rookie running backs, the linear regression model performed the best, with an <strong>error of +/- 54.4 fantasy points</strong>.</p></li>
 </ul>
-<p>I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed.</p>
+<p>I aim to compare the results of the model predictions for running backs at the end of the NFL season in February to see how well it performed. Please see the <strong>Recommendations</strong> section for current predictions.</p>
 <p><strong>Background</strong></p>
 <p>Fantasy football is a game in which regular people create their team of football players from the NFL. You compete in a league of usually 8-12 teams, and every year, individuals draft players to their team based on who they expect to score the most points that season.</p>
 <p>Consequentially, I was looking for a way to improve my draft strategy to find high-value running backs in the late rounds of my fantasy football draft - as well as avoid drafting ‘busts.’ I will use their fantasy football average draft position (ADP) as a reference point.</p>
@@ -641,9 +641,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="non-rookies-3" class="section level3 hasAnchor" number="1.6.1">
 <h3><span class="header-section-number">1.6.1</span> Non-Rookies<a href="#non-rookies-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Here, I create an output of the top 30 projected half-PPR non-rookie running backs from the average of the 4 models. Austin Ekeler, Christian McCaffrey, and Saquon Barkley lead the pack with over 200+ projected fantasy points. These 3 are all projected to go early in the first round of fantasy drafts - and rightfully so.</p>
-<p>Some names that pop out to me are Joe Mixon, who is projected 6th highest in terms of points yet has an ADP 2 rounds later than the other players around him.</p>
-<p>James Conner has an ADP in the 7th round, while the players being drafted around him with similar projected fantasy points are being taken in the 4th round.</p>
-<p>Lastly, Antonio Gibson has a very high ADP in the 12th round; however, other players with similarly projected fantasy points are being taken in the 5th to 8th rounds.</p>
+<p>One name that pops out to me is Joe Mixon, expected 4th round draft pick, who is projected to score a similar amount of fantasy points with running backs taken two rounds ahead of him in the 2nd. With Samaje Perine leaving for the Denver Broncos, Mixon has an excellent opportunity to significantly outperform his ADP and be a dominant running back in Cincinatti.</p>
+<p>James Conner has an ADP in the 7th round, while the players being drafted around him with similar projected fantasy points are being taken in the 4th round. With Darrel Williams and Eno Benjamin out of the picture and no new additions, James Conner will be a workhorse in Arizona. Likewise, Arizona’s QB situation is uncertain right now since Kyler Murray’s injury, so they will definitely rely on the running game more.</p>
+<p>Lastly, Antonio Gibson has a very high ADP in the 12th round; however, other players with similarly projected fantasy points are being taken in the 5th to 8th rounds. While there is another running back in Washington with Brian Robinson Jr., he underwhelmed last year as a rookie - averaging 3.9 yards per carry. The new offensive coordinator in town - Eric Bieniemy - will bring an interesting twist on the Washington way. Gibson is a great late round steal if you can manage.</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a>nr23 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(non.rookies2023, rf.pred, boost.pred, pcr.pred, pls.pred)</span>
 <span id="cb42-2"><a href="#cb42-2" tabindex="-1"></a>nr23<span class="sc">$</span>Projected_Half_PPR_Fantasy_Points <span class="ot">&lt;-</span> <span class="fu">rowMeans</span>(nr23[<span class="dv">72</span><span class="sc">:</span><span class="dv">75</span>])</span></code></pre></div>
 <pre><code>##             PlayerName PPR_ADP Projected_Half_PPR_Fantasy_Points
