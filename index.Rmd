@@ -273,7 +273,7 @@ Here, we will dive a little deeper into some of the variable relationships in th
 
 ### Non-Rookies
 
-We start by looking at a correlation matrix of variables in the model (not including previous season performance variables - that will be done separately). We see some obviously strong correlations, like CapNum and CashSpent, which are both salary information for players. There's also a very strong relationship between a player's Madden rating and their average draft position (ADP). This relationship makes sense, as highly rated players will be drafted higher.
+We start by looking at a correlation matrix of variables in the model (not including previous season performance variables - that will be done separately). We see some obviously strong correlations, like the percentage of the salary cap and cash incentives, which are both salary information for players. There's also a very strong relationship between a player's Madden rating and their average draft position (ADP). This relationship makes sense, as highly rated players will be drafted higher.
 
 In terms of the target variable - Half PPR Fantasy Points - we see some variables with noticeable relationships, like RB salary information, where they were drafted in the NFL, fantasy average draft position, their Madden rating, and a slight relationship with height.
 
@@ -281,8 +281,11 @@ In terms of the target variable - Half PPR Fantasy Points - we see some variable
 corrs.int <- train[c(4,12,13,15,18,19, 60,61,64,65,73,77:79)]
 
 res <- cor(corrs.int)
+colnames(res) <- c("Age", "Height", "Weight", "Year Pro", "RB % of Sal Cap", "RB Sal Cash Inctv", "OL % of Sal Cap", "OL Sal Cash Inctv", "QB % of Sal Cap", "QB Sal Cash Inctv", "Overall NFL Draft Pos", "Madden Rating", "PPR FF Avg Draft Pos", "Half-PPR Fantasy Pts")
+rownames(res) <- c("Age", "Height (in)", "Weight (lbs)", "Year Pro", "RB % of Salary Cap", "RB Salary Cash Incentives", "OL % of Salary Cap", "OL Salary Cash Incentives", "QB % of Salary Cap", "QB Salary Cash Incentives", "Overall NFL Draft Position", "Madden Rating", "PPR FF Average Draft Position", "Half-PPR Fantasy Points")
 
-corrplot::corrplot(res,type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, title = "Correlation Matrix on NFL Running Back Data (2012-2022)", mar=c(0,0,1,0))
+
+corrplot::corrplot(res,type = "upper", order = "hclust", tl.col = "black", tl.srt = 55, title = "Correlation Matrix on NFL Running Back Data (2012-2022)", mar=c(0,0,1,0))
 ```
 
 Next, the target variable was explored in relation to previous season data. I used a function I found online to flatten out the correlation matrix to pair relationships.
@@ -334,17 +337,29 @@ ggplot(data = train, aes(x = FirstYearOnTeam, y = Fantasy_Points_Half_PPR)) +
 ```
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE, include = FALSE}
+#Testing Normality of Data - fails
 ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = factor(Prev40Runs))) +
   stat_qq()+
   stat_qq_line()
 
+#Kruskal Wallis Test for One Way ANOVA
 kruskal.test(Fantasy_Points_Half_PPR ~ factor(Prev40Runs), data = train) #sig diff b/w at least one category exists
 
-prev40aov <- aov(Fantasy_Points_Half_PPR ~ factor(Prev40Runs), data = train)
-TukeyHSD(prev40aov)
+#Must remove 7&8 40+ yard runs since only one observation of them
+bonf1_train <- train %>%
+  group_by(Fantasy_Points_Half_PPR) %>%
+  filter(Prev40Runs <6) %>%
+  ungroup()
+
+#Since non-parametric, use Bonferroni Correction.
+pairwise.t.test(bonf1_train$Fantasy_Points_Half_PPR, factor(bonf1_train$Prev40Runs), p.adj = "bonf")
 ```
 
-Next, "boom" or "bust" running backs are typically those with 'big-play ability.' Those can be explored by 40+ yard runs in the previous season. The boxplots below show a statistically significant difference in the average half-PPR fantasy points in at least one of the groups. Upon further inspection, we see a significant difference between 0 and 2 or higher. 7 and 8 were not included in post-hoc testing due to there only being a single occurrence in the data. There is a generally increasing trend in the boxplots as well, so there is likely a relationship between the number of 40+ yard runs and a running back's fantasy production.
+Next, "boom" or "bust" running backs are typically those with 'big-play ability.' Those can be explored by 40+ yard runs in the previous season. The boxplots below show a statistically significant difference in the average half-PPR fantasy points in at least one of the groups. 
+
+Upon further inspection, we see a significant difference between 0 and 3 40+ yard runs. 7 and 8 were not included in post-hoc testing due to there only being a single occurrence in the data. Additionally, since Tukey's HSD test could not be performed here due to non-parametric data, a Bonferroni correction was made to the p-values instead. Since this is generally more conservative, we see only one significant difference.
+
+There is a generally increasing trend in the boxplots as well, so there is likely a relationship between the number of 40+ yard runs and a running back's fantasy production.
 
 ```{r warning= FALSE, message = FALSE}
 ggplot(data = train, aes(x = factor(Prev40Runs), y = Fantasy_Points_Half_PPR)) +
@@ -414,6 +429,39 @@ ggplot(data = train, aes(x = FranchiseTag, Fantasy_Points_Half_PPR)) + geom_boxp
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+```{r warning = FALSE, message = FALSE, echo = FALSE, include = FALSE}
+ft.players <- train %>%
+  filter(FranchiseTag == 1) #within 15, 25, 35
+
+jon_question <- train %>%
+  filter(Year == 2012 & PPR_ADP < 46.7)
+jon_question2 <- train %>%
+  filter(Year == 2017 & PPR_ADP < 37)
+jon_question3 <- train %>%
+  filter(Year == 2020 & PPR_ADP <50)
+
+jon.q <- rbind(jon_question, jon_question2, jon_question3)
+
+ggplot(data = jon.q, aes(sample = Fantasy_Points_Half_PPR, color = FranchiseTag)) +
+  stat_qq()+
+  stat_qq_line()
+
+var.test(Fantasy_Points_Half_PPR ~ FranchiseTag, data = jon.q)
+t.test(Fantasy_Points_Half_PPR ~ FranchiseTag, data = jon.q, var.equal = TRUE, alternative = 'less')
+
+wilcox.test(Fantasy_Points_Half_PPR ~ FranchiseTag, alternative = 'less', data = jon.q) #sig lower for 0
+```
+
+I was curious about this, so I dove a little deeper and filtered the data to show how franchise tagged players perform relative to non-franchise tagged players, but only those drafted within the top 35 picks of the fantasy draft. Interestingly, there is enough evidence to claim a significant difference in the average half-PPR fantasy points for players on and off a franchise tag. As we can see in the plot below, there is clearly a massive jump in the median half-PPR fantasy points for non-franchise-tagged players. 
+
+```{r warning = FALSE, message = FALSE, echo = FALSE}
+ggplot(data = jon.q, aes(x = FranchiseTag, y = Fantasy_Points_Half_PPR)) + geom_boxplot(fill = "orange", alpha = 0.2) +
+    labs(x = "Franchise Tag", y = "Half-PPR Fantasy Points", title = "Boxplot of Half-PPR Fantasy Points vs. Franchise Tag \n(2012-2022): [+/- 35 picks PPR ADP]") +
+  theme_classic() +
+  coord_flip() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
 ```{r warning = FALSE, message= FALSE, echo = FALSE, include = FALSE}
 plot(lm(Fantasy_Points_Half_PPR ~ Madden_Rating, data = train),1)
 plot(lm(Fantasy_Points_Half_PPR ~ Madden_Rating, data = train),2)
@@ -437,13 +485,12 @@ ggplot(data = train, aes(sample = Fantasy_Points_Half_PPR, color = DraftRound)) 
 
 kruskal.test(Fantasy_Points_Half_PPR ~ DraftRound, data = train) #sig diff b/w at least one category exists
 
-draftRoundaov <- aov(Fantasy_Points_Half_PPR ~ DraftRound, data = train)
-TukeyHSD(draftRoundaov)
+pairwise.t.test(train$Fantasy_Points_Half_PPR, factor(train$DraftRound), p.adj = "bonf")
 ```
 
-In this final boxplot, we examine what round a running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. There is an expected generally decreasing trend as higher-scoring players are taken in the higher rounds.
+In this final boxplot, we examine what round a running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. There is an expected generally decreasing trend as higher-scoring players are typically starters, whom are taken in the higher rounds.
 
-Statistically speaking, there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 4, 5 and 6 have a clear statistical difference from round 2. We also see undrafted free agents (UDFA) have a statistical difference from rounds 1, 2 and 3 players.
+Statistically speaking, there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, a Bonferroni correction was once again applied, for the same reasons stated above. Rounds 4, 5 and 6 have a clear statistical difference from round 2. Undrafted free agents (UDFA) have a statistical difference from rounds 1, 2 and 3 players. Lastly, round 3 and round 6 are statistically different. 
 
 While there are some exceptions of UDFA players who have been elite running backs (ie: Austin Ekeler), they are generally one of the lower-performing half-PPR draft rounds, as expected.
 
@@ -499,13 +546,12 @@ ggplot(data = train2, aes(sample = Fantasy_Points_Half_PPR, color = DraftRound))
 
 kruskal.test(Fantasy_Points_Half_PPR ~ DraftRound, data = train2) #sig diff b/w at least one category exists
 
-draftRoundaov <- aov(Fantasy_Points_Half_PPR ~ DraftRound, data = train2)
-TukeyHSD(draftRoundaov)
+pairwise.t.test(train2$Fantasy_Points_Half_PPR, factor(train2$DraftRound), p.adj = "bonf")
 ```
 
-In this final boxplot, we examine what round a rookie running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. There is a stronger, decreasing trend, as rookies drafted in the early rounds (especially the first) have a much higher chance of coming in to a situation as the clear-cut starter, not having to compete for playing time.
+In this final boxplot, we examine what round a rookie running back was drafted in the NFL draft and their corresponding average half-PPR fantasy points. There is a stronger, exponentially decreasing trend, as rookies drafted in the early rounds (especially the first) have a much higher chance of coming in to a situation as the clear-cut starter, not having to compete for playing time.
 
-Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper, rounds 2,3,4,5,6 and 7 have a clear statistical difference between round 1. We also see undrafted free agents (UDFA) have a statistical difference between rounds 1 and 2 players. This makes sense because UDFA rookie running backs will get very little playing time compared to first-round backs.
+Statistically speaking, we see there is a significant difference between at least one of the draft rounds in terms of half-PPR fantasy points. Diving a little deeper through the Bonferroni correction, rounds 2,3,4,5,6 and 7 have a clear statistical difference between round 1. We also see undrafted free agents (UDFA) have a statistical difference between rounds 1 and 2 players. This makes sense because UDFA rookie running backs will get very little playing time compared to first-round backs.
 
 ```{r warning= FALSE, message = FALSE, echo = FALSE}
 ggplot(data = train2, aes(x = DraftRound, Fantasy_Points_Half_PPR)) + 
